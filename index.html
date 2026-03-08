@@ -470,6 +470,44 @@
   .email-error { font-size: 12px; color: #F5A0A0; margin-top: 8px; display: none; }
   .email-error.show { display: block; }
 
+  .share-nudge-card {
+    background: linear-gradient(135deg, #5A7A4E 0%, #7A8C6E 100%);
+    border-radius: 20px;
+    padding: 24px 28px;
+    margin: 0 0 24px;
+    text-align: center;
+    animation: cardSlide 0.4s 0.8s cubic-bezier(0.22,1,0.36,1) both;
+  }
+  .share-nudge-card h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    color: var(--cream);
+    margin-bottom: 6px;
+  }
+  .share-nudge-card p {
+    font-size: 13px;
+    color: rgba(255,255,255,0.75);
+    margin-bottom: 16px;
+    line-height: 1.5;
+  }
+  .share-nudge-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: white;
+    color: #3D6B30;
+    border: none;
+    border-radius: 50px;
+    padding: 12px 24px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+  }
+  .share-nudge-btn:hover { transform: scale(1.04); box-shadow: 0 4px 16px rgba(0,0,0,0.2); }
+
   footer { text-align: center; padding: 24px 0 48px; font-size: 12px; color: #C5BDB2; }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -577,6 +615,7 @@
     <div id="mealsContainer"></div>
     <div id="stretchCard"></div>
     <div id="emailSignupCard"></div>
+    <div id="shareNudgeCard"></div>
     <button class="try-again-btn" onclick="resetApp()">← Try different ingredients</button>
   </div>
 
@@ -720,7 +759,7 @@
       <div class="share-card-ings">${ingsHtml}</div>
       <div class="share-card-section">Steps</div>
       <div class="share-card-steps">${stepsHtml}</div>
-      <div class="share-card-footer">Made with <strong>Plenty</strong> — you have more than you think 🌿</div>`;
+      <div class="share-card-footer"><div style="font-weight:700;font-size:15px;color:#C4622D;">🌿 Plenty</div><div style="font-size:12px;color:#888;margin-top:3px;">Free at plenty-app-nine.vercel.app</div></div>`;
 
     // Capture as image
     try {
@@ -1078,6 +1117,18 @@ Exactly 3 meals. Only use provided ingredients.${buildHealthInsightsInstruction(
     document.getElementById('emailField').addEventListener('keydown', e => {
       if (e.key === 'Enter') submitEmail();
     });
+
+    // Share nudge card
+    const appUrl = 'https://plenty-app-nine.vercel.app';
+    const nudgeText = encodeURIComponent(`🌿 I just found 3 meals I can make from what I already have!\n\nTry Plenty free — it turns your ingredients into meal ideas:\n${appUrl}`);
+    document.getElementById('shareNudgeCard').innerHTML = `
+      <div class="share-nudge-card">
+        <h3>🤝 Know someone who'd love this?</h3>
+        <p>Share Plenty with a friend who's ever stared at the fridge and thought "there's nothing to eat".</p>
+        <a class="share-nudge-btn" href="https://wa.me/?text=${nudgeText}" target="_blank">
+          <span>💬</span> Share Plenty on WhatsApp
+        </a>
+      </div>`;
 
     document.getElementById('resultsSection').classList.add('active');
     document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
