@@ -7,14 +7,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
   :root {
-    --cream: #F7F3EC;
-    --warm-white: #FDFAF5;
-    --earth: #3D2B1F;
-    --terracotta: #C4622D;
-    --sage: #7A8C6E;
-    --gold: #D4A847;
-    --light-sage: #E8EDE4;
-    --muted: #8A7968;
+    --cream: #F7F3EC; --warm-white: #FDFAF5; --earth: #3D2B1F;
+    --terracotta: #C4622D; --sage: #7A8C6E; --gold: #D4A847;
+    --light-sage: #E8EDE4; --muted: #8A7968;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { background-color: var(--cream); color: var(--earth); font-family: 'DM Sans', sans-serif; min-height: 100vh; overflow-x: hidden; }
@@ -60,18 +55,28 @@
 
   /* Input card */
   .input-card { background: var(--warm-white); border: 1.5px solid #E0D8CE; border-radius: 20px; padding: 28px; margin-bottom: 12px; box-shadow: 0 4px 24px rgba(61,43,31,0.06); }
-  .input-label { font-size: 13px; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 14px; display: block; }
-  .ingredient-input-row { display: flex; gap: 10px; margin-bottom: 16px; }
-  .ingredient-input { flex: 1; background: var(--cream); border: 1.5px solid #DDD5C8; border-radius: 12px; padding: 12px 16px; font-family: 'DM Sans', sans-serif; font-size: 15px; color: var(--earth); outline: none; transition: all 0.2s; }
+  .input-label { font-size: 13px; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 6px; display: block; }
+  .input-hint { font-size: 12px; color: #BFB8AE; margin-bottom: 14px; }
+
+  /* Ingredient row with quantity */
+  .ingredient-input-row { display: flex; gap: 8px; margin-bottom: 16px; }
+  .ingredient-input { flex: 2; background: var(--cream); border: 1.5px solid #DDD5C8; border-radius: 12px; padding: 12px 16px; font-family: 'DM Sans', sans-serif; font-size: 15px; color: var(--earth); outline: none; transition: all 0.2s; }
   .ingredient-input:focus { border-color: var(--terracotta); background: white; box-shadow: 0 0 0 3px rgba(196,98,45,0.08); }
   .ingredient-input::placeholder { color: #BFB8AE; }
-  .add-btn { background: var(--terracotta); color: white; border: none; border-radius: 12px; padding: 12px 20px; font-size: 22px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; font-weight: 300; line-height: 1; }
+  .qty-input { flex: 1; background: var(--cream); border: 1.5px solid #DDD5C8; border-radius: 12px; padding: 12px 12px; font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--earth); outline: none; transition: all 0.2s; min-width: 0; }
+  .qty-input:focus { border-color: var(--terracotta); background: white; box-shadow: 0 0 0 3px rgba(196,98,45,0.08); }
+  .qty-input::placeholder { color: #BFB8AE; font-size: 12px; }
+  .add-btn { background: var(--terracotta); color: white; border: none; border-radius: 12px; padding: 12px 18px; font-size: 22px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; font-weight: 300; line-height: 1; flex-shrink: 0; }
   .add-btn:hover { background: #B0561F; transform: scale(1.05); }
+
+  /* Ingredient tags with quantity */
   .tags-container { display: flex; flex-wrap: wrap; gap: 8px; min-height: 36px; }
-  .ingredient-tag { background: var(--light-sage); color: var(--earth); border-radius: 100px; padding: 6px 14px; font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 8px; animation: tagPop 0.2s cubic-bezier(0.34,1.56,0.64,1); }
+  .ingredient-tag { background: var(--light-sage); color: var(--earth); border-radius: 100px; padding: 6px 14px; font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 6px; animation: tagPop 0.2s cubic-bezier(0.34,1.56,0.64,1); }
+  .tag-qty { background: var(--sage); color: white; border-radius: 100px; padding: 1px 7px; font-size: 11px; font-weight: 500; }
   @keyframes tagPop { from { transform: scale(0.7); opacity: 0; } to { transform: scale(1); opacity: 1; } }
   .tag-remove { cursor: pointer; color: var(--sage); font-size: 16px; line-height: 1; transition: color 0.2s; }
   .tag-remove:hover { color: var(--terracotta); }
+
   .quick-add { margin-top: 14px; padding-top: 14px; border-top: 1px solid #EDE8E0; }
   .quick-add-label { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
   .quick-pills { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -113,66 +118,24 @@
   .meal-affirmation { font-style: italic; color: var(--terracotta); font-size: 14px; margin-bottom: 12px; font-family: 'Playfair Display', serif; }
   .meal-description { font-size: 14px; color: #6B5E52; line-height: 1.7; margin-bottom: 16px; }
 
-  /* ── NEW: Health explanation panel ── */
-  .health-explanation {
-    background: linear-gradient(135deg, #F0F7EE 0%, #EAF2E8 100%);
-    border: 1.5px solid #C5D9BF;
-    border-radius: 14px;
-    padding: 16px 18px;
-    margin-bottom: 16px;
-  }
-  .health-explanation-header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 12px;
-  }
-  .health-explanation-title {
-    font-size: 12px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: var(--sage);
-  }
-  .health-insight-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-  .health-insight {
-    display: flex;
-    gap: 10px;
-    align-items: flex-start;
-  }
-  .insight-icon {
-    width: 26px;
-    height: 26px;
-    background: white;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 13px;
-    flex-shrink: 0;
-    border: 1px solid #C5D9BF;
-    margin-top: 1px;
-  }
-  .insight-text {
-    font-size: 13px;
-    color: #4A6B42;
-    line-height: 1.55;
-  }
-  .insight-text strong {
-    color: #2E4A28;
-    font-weight: 600;
-  }
-  /* ── end health explanation ── */
+  .health-explanation { background: linear-gradient(135deg, #F0F7EE 0%, #EAF2E8 100%); border: 1.5px solid #C5D9BF; border-radius: 14px; padding: 16px 18px; margin-bottom: 16px; }
+  .health-explanation-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+  .health-explanation-title { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--sage); }
+  .health-insight-list { display: flex; flex-direction: column; gap: 8px; }
+  .health-insight { display: flex; gap: 10px; align-items: flex-start; }
+  .insight-icon { width: 26px; height: 26px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; border: 1px solid #C5D9BF; margin-top: 1px; }
+  .insight-text { font-size: 13px; color: #4A6B42; line-height: 1.55; }
+  .insight-text strong { color: #2E4A28; font-weight: 600; }
 
   .meal-sections { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
   @media (max-width: 560px) { .meal-sections { grid-template-columns: 1fr; } }
   .meal-section-label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 8px; }
+
+  /* Ingredients with quantity in results */
   .ingredients-list { display: flex; flex-wrap: wrap; gap: 5px; }
-  .ing-chip { background: var(--light-sage); color: var(--earth); padding: 3px 10px; border-radius: 100px; font-size: 12px; }
+  .ing-chip { background: var(--light-sage); color: var(--earth); padding: 3px 10px; border-radius: 100px; font-size: 12px; display: inline-flex; align-items: center; gap: 5px; }
+  .ing-chip-qty { background: var(--sage); color: white; border-radius: 100px; padding: 1px 6px; font-size: 10px; font-weight: 500; }
+
   .nutrition-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
   .nutrition-item { background: var(--cream); border-radius: 8px; padding: 6px 10px; font-size: 12px; }
   .nutrition-item span:first-child { color: var(--muted); display: block; font-size: 10px; }
@@ -194,7 +157,6 @@
   .confidence-banner { background: var(--earth); color: var(--cream); border-radius: 16px; padding: 20px 24px; text-align: center; margin-bottom: 24px; animation: cardSlide 0.4s 0.5s cubic-bezier(0.22,1,0.36,1) both; }
   .confidence-banner .big-num { font-family: 'Playfair Display', serif; font-size: 42px; color: var(--gold); line-height: 1; margin-bottom: 4px; }
   .confidence-banner p { font-size: 14px; opacity: 0.8; }
-
   .try-again-btn { width: 100%; background: transparent; border: 1.5px solid #DDD5C8; border-radius: 12px; padding: 14px; font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--muted); cursor: pointer; transition: all 0.2s; margin-bottom: 48px; }
   .try-again-btn:hover { border-color: var(--terracotta); color: var(--terracotta); }
   .error-state { background: #FDE8E8; border: 1.5px solid #F5C6C6; border-radius: 16px; padding: 20px 24px; text-align: center; margin-bottom: 24px; display: none; }
@@ -256,28 +218,30 @@
 
   <div class="input-card">
     <span class="input-label">What's in your kitchen right now?</span>
+    <p class="input-hint">Enter each ingredient and how much you have — e.g. "2 eggs" or "500g rice"</p>
     <div class="ingredient-input-row">
-      <input type="text" class="ingredient-input" id="ingredientInput" placeholder="e.g. eggs, rice, onion, tomato..." />
+      <input type="text" class="ingredient-input" id="ingredientInput" placeholder="Ingredient (e.g. rice, eggs...)" />
+      <input type="text" class="qty-input" id="qtyInput" placeholder="Amount (e.g. 2 cups)" />
       <button class="add-btn" onclick="addIngredient()" title="Add">+</button>
     </div>
     <div class="tags-container" id="tagsContainer"></div>
     <div class="quick-add">
       <p class="quick-add-label">Quick add common staples:</p>
       <div class="quick-pills">
-        <button class="quick-pill" onclick="quickAdd('rice')">🍚 rice</button>
-        <button class="quick-pill" onclick="quickAdd('eggs')">🥚 eggs</button>
-        <button class="quick-pill" onclick="quickAdd('onion')">🧅 onion</button>
-        <button class="quick-pill" onclick="quickAdd('garlic')">🧄 garlic</button>
-        <button class="quick-pill" onclick="quickAdd('tomato')">🍅 tomato</button>
-        <button class="quick-pill" onclick="quickAdd('potato')">🥔 potato</button>
-        <button class="quick-pill" onclick="quickAdd('pasta')">🍝 pasta</button>
-        <button class="quick-pill" onclick="quickAdd('chicken')">🍗 chicken</button>
-        <button class="quick-pill" onclick="quickAdd('butter')">🧈 butter</button>
-        <button class="quick-pill" onclick="quickAdd('flour')">🌾 flour</button>
-        <button class="quick-pill" onclick="quickAdd('olive oil')">🫒 olive oil</button>
-        <button class="quick-pill" onclick="quickAdd('canned beans')">🫘 canned beans</button>
-        <button class="quick-pill" onclick="quickAdd('lemon')">🍋 lemon</button>
-        <button class="quick-pill" onclick="quickAdd('carrot')">🥕 carrot</button>
+        <button class="quick-pill" onclick="quickAdd('rice','2 cups')">🍚 rice</button>
+        <button class="quick-pill" onclick="quickAdd('eggs','4')">🥚 eggs</button>
+        <button class="quick-pill" onclick="quickAdd('onion','1')">🧅 onion</button>
+        <button class="quick-pill" onclick="quickAdd('garlic','3 cloves')">🧄 garlic</button>
+        <button class="quick-pill" onclick="quickAdd('tomato','2')">🍅 tomato</button>
+        <button class="quick-pill" onclick="quickAdd('potato','3')">🥔 potato</button>
+        <button class="quick-pill" onclick="quickAdd('pasta','200g')">🍝 pasta</button>
+        <button class="quick-pill" onclick="quickAdd('chicken','500g')">🍗 chicken</button>
+        <button class="quick-pill" onclick="quickAdd('butter','100g')">🧈 butter</button>
+        <button class="quick-pill" onclick="quickAdd('flour','1 cup')">🌾 flour</button>
+        <button class="quick-pill" onclick="quickAdd('olive oil','small bottle')">🫒 olive oil</button>
+        <button class="quick-pill" onclick="quickAdd('canned beans','1 can')">🫘 canned beans</button>
+        <button class="quick-pill" onclick="quickAdd('lemon','2')">🍋 lemon</button>
+        <button class="quick-pill" onclick="quickAdd('carrot','3')">🥕 carrot</button>
       </div>
     </div>
   </div>
@@ -312,17 +276,18 @@
 
 <script>
   const CONDITIONS = [
-    { id: 'diabetes',     emoji: '🩸', name: 'Diabetes / Pre-diabetes', desc: 'Low glycemic, controlled carbs',  rules: 'low glycemic index foods, controlled carbohydrates, no added sugar, high fibre' },
-    { id: 'cholesterol',  emoji: '💛', name: 'High Cholesterol',         desc: 'Low saturated fat, high fibre',  rules: 'low saturated fat, no trans fats, high soluble fibre, heart-healthy unsaturated fats like olive oil' },
-    { id: 'hypertension', emoji: '💙', name: 'High Blood Pressure',      desc: 'Low sodium, potassium-rich',     rules: 'very low sodium (no added salt), potassium-rich foods, DASH diet principles' },
-    { id: 'heart',        emoji: '❤️', name: 'Heart Disease',            desc: 'Heart-healthy fats, low sodium', rules: 'heart-healthy omega-3 fats, low sodium, low saturated fat, high fibre, no processed foods' },
-    { id: 'kidney',       emoji: '🫘', name: 'Kidney Disease',           desc: 'Low potassium & phosphorus',     rules: 'low potassium, low phosphorus, controlled protein intake, low sodium' },
-    { id: 'ibs',          emoji: '🌿', name: 'IBS / Digestive Issues',   desc: 'Low FODMAP, gentle ingredients', rules: 'low FODMAP ingredients, easily digestible foods, no high-gas foods' },
+    { id: 'diabetes',     emoji: '🩸', name: 'Diabetes / Pre-diabetes', desc: 'Low glycemic, controlled carbs',    rules: 'low glycemic index foods, controlled carbohydrates, no added sugar, high fibre' },
+    { id: 'cholesterol',  emoji: '💛', name: 'High Cholesterol',         desc: 'Low saturated fat, high fibre',    rules: 'low saturated fat, no trans fats, high soluble fibre, heart-healthy unsaturated fats like olive oil' },
+    { id: 'hypertension', emoji: '💙', name: 'High Blood Pressure',      desc: 'Low sodium, potassium-rich',       rules: 'very low sodium (no added salt), potassium-rich foods, DASH diet principles' },
+    { id: 'heart',        emoji: '❤️', name: 'Heart Disease',            desc: 'Heart-healthy fats, low sodium',   rules: 'heart-healthy omega-3 fats, low sodium, low saturated fat, high fibre, no processed foods' },
+    { id: 'kidney',       emoji: '🫘', name: 'Kidney Disease',           desc: 'Low potassium & phosphorus',       rules: 'low potassium, low phosphorus, controlled protein intake, low sodium' },
+    { id: 'ibs',          emoji: '🌿', name: 'IBS / Digestive Issues',   desc: 'Low FODMAP, gentle ingredients',   rules: 'low FODMAP ingredients, easily digestible foods, no high-gas foods' },
     { id: 'obesity',      emoji: '⚖️', name: 'Weight Management',        desc: 'Calorie controlled, high satiety', rules: 'calorie controlled, high protein and fibre for satiety, low energy density, minimal added fats' },
-    { id: 'anaemia',      emoji: '🔴', name: 'Anaemia / Low Iron',       desc: 'Iron-rich, vitamin C pairing',   rules: 'iron-rich ingredients, pair with vitamin C to boost absorption' },
+    { id: 'anaemia',      emoji: '🔴', name: 'Anaemia / Low Iron',       desc: 'Iron-rich, vitamin C pairing',     rules: 'iron-rich ingredients, pair with vitamin C to boost absorption' },
   ];
 
   let selectedConditions = new Set();
+  // ingredients is now an array of { name, qty } objects
   let ingredients = [];
 
   function renderHealthGrid() {
@@ -336,8 +301,7 @@
 
   function toggleCondition(id) {
     selectedConditions.has(id) ? selectedConditions.delete(id) : selectedConditions.add(id);
-    renderHealthGrid();
-    updateHealthSummary();
+    renderHealthGrid(); updateHealthSummary();
   }
 
   function updateHealthSummary() {
@@ -357,24 +321,35 @@
     document.getElementById('healthArrow').classList.toggle('open');
   }
 
-  const input = document.getElementById('ingredientInput');
-  input.addEventListener('keydown', e => { if (e.key === 'Enter') addIngredient(); });
+  const ingInput = document.getElementById('ingredientInput');
+  const qtyInput = document.getElementById('qtyInput');
+
+  // Allow Enter on either field to add
+  ingInput.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); qtyInput.focus(); } });
+  qtyInput.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addIngredient(); } });
 
   function addIngredient() {
-    const val = input.value.trim().toLowerCase();
-    if (!val) return;
-    val.split(',').map(s => s.trim()).filter(Boolean).forEach(item => {
-      if (item && !ingredients.includes(item)) ingredients.push(item);
-    });
-    input.value = ''; renderTags(); updateBtn();
+    const name = ingInput.value.trim().toLowerCase();
+    const qty  = qtyInput.value.trim();
+    if (!name) return;
+    if (!ingredients.find(i => i.name === name)) {
+      ingredients.push({ name, qty: qty || '' });
+    }
+    ingInput.value = ''; qtyInput.value = '';
+    ingInput.focus();
+    renderTags(); updateBtn();
   }
 
-  function quickAdd(item) {
-    if (!ingredients.includes(item)) { ingredients.push(item); renderTags(); updateBtn(); }
+  function quickAdd(name, qty) {
+    if (!ingredients.find(i => i.name === name)) {
+      ingredients.push({ name, qty });
+      renderTags(); updateBtn();
+    }
   }
 
-  function removeIngredient(item) {
-    ingredients = ingredients.filter(i => i !== item); renderTags(); updateBtn();
+  function removeIngredient(name) {
+    ingredients = ingredients.filter(i => i.name !== name);
+    renderTags(); updateBtn();
   }
 
   function renderTags() {
@@ -383,7 +358,8 @@
     ingredients.forEach(ing => {
       const tag = document.createElement('span');
       tag.className = 'ingredient-tag';
-      tag.innerHTML = `${ing} <span class="tag-remove" onclick="removeIngredient('${ing}')">×</span>`;
+      const qtyBadge = ing.qty ? `<span class="tag-qty">${ing.qty}</span>` : '';
+      tag.innerHTML = `${ing.name} ${qtyBadge} <span class="tag-remove" onclick="removeIngredient('${ing.name}')">×</span>`;
       c.appendChild(tag);
     });
   }
@@ -403,6 +379,10 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
+  function buildIngredientsList() {
+    return ingredients.map(i => i.qty ? `${i.qty} of ${i.name}` : i.name).join(', ');
+  }
+
   function buildHealthRules() {
     if (selectedConditions.size === 0) return '';
     const rules = [...selectedConditions].map(id => {
@@ -415,7 +395,7 @@
   function buildHealthInsightsInstruction() {
     if (selectedConditions.size === 0) return '';
     const condNames = [...selectedConditions].map(id => CONDITIONS.find(x => x.id === id).name).join(', ');
-    return `\n\nFor each meal, include a "health_insights" array of 2-4 objects explaining WHY specific ingredients in this meal are beneficial for the user's conditions (${condNames}). Each insight must be specific, educational, and mention the actual ingredient by name. Use plain friendly language like a knowledgeable friend explaining your food to you. Format:\n{ "icon": "🫒", "text": "<b>Olive oil</b> contains oleic acid, a heart-healthy fat that actively helps lower LDL (bad) cholesterol." }`;
+    return `\n\nFor each meal include a "health_insights" array of 2-4 objects explaining WHY specific ingredients benefit the user's conditions (${condNames}). Each must mention the actual ingredient by name. Plain friendly language. Format: { "icon": "🫒", "text": "<b>Olive oil</b> contains oleic acid which actively lowers LDL cholesterol." }`;
   }
 
   async function generateMeals() {
@@ -428,19 +408,26 @@
     document.getElementById('resultsSection').classList.remove('active');
     document.getElementById('errorState').classList.remove('active');
 
+    const ingList = buildIngredientsList();
+
     const prompt = `You are Plenty, a compassionate AI chef who helps people discover the abundance in what they already have. Your mission is to make people feel empowered and abundant, not poor.
 
-A user has these ingredients: ${ingredients.join(', ')}
+A user has these ingredients with quantities: ${ingList}
 
 Their preferences:
 - Diet: ${diet}
 - Skill level: ${skill}
 - Servings needed: ${servings}${buildHealthRules()}${buildHealthInsightsInstruction()}
 
-Return ONLY valid JSON (no markdown, no extra text) in this exact structure:
+IMPORTANT: Because you know the exact quantities, you must:
+1. Only suggest meals that can realistically be made with the quantities provided
+2. In the ingredients_used array, list each ingredient with the specific quantity needed e.g. "2 eggs", "1 cup rice"
+3. If an ingredient quantity might be tight for the number of servings, note this in the cooking steps
+
+Return ONLY valid JSON (no markdown, no extra text):
 {
   "confidence_message": "Short warm empowering statement (max 15 words)",
-  "meal_count_celebration": "e.g. '3 nourishing meals' or '3 heart-healthy dinners'",
+  "meal_count_celebration": "e.g. '3 nourishing meals'",
   "meals": [
     {
       "name": "Meal name",
@@ -448,11 +435,9 @@ Return ONLY valid JSON (no markdown, no extra text) in this exact structure:
       "description": "2 sentence warm appetizing description",
       "time_minutes": 25,
       "difficulty": "easy",
-      "ingredients_used": ["ingredient1", "ingredient2"],
-      "health_badges": ["Diabetes safe", "Heart healthy"],
-      "health_insights": [
-        { "icon": "🫒", "text": "<b>Olive oil</b> contains heart-healthy fats that help lower bad cholesterol." }
-      ],
+      "ingredients_used": ["2 eggs", "1 cup rice"],
+      "health_badges": ["Diabetes safe"],
+      "health_insights": [{ "icon": "🥚", "text": "<b>Eggs</b> provide complete protein." }],
       "nutrition": { "calories": "~350 kcal", "protein": "18g", "carbs": "42g", "fat": "12g" },
       "steps": ["Step one", "Step two", "Step three", "Step four"]
     }
@@ -460,11 +445,11 @@ Return ONLY valid JSON (no markdown, no extra text) in this exact structure:
   "stretch_meal": {
     "name": "Meal name",
     "one_extra_item": "one cheap grocery item",
-    "description": "What becomes possible. Keep it exciting and specific."
+    "description": "What becomes possible. Exciting and specific."
   }
 }
 
-Generate exactly 3 meals. Use ONLY ingredients provided. Respect ALL health rules strictly. Use warm empowering language. Never use words like 'limited', 'few', 'only', 'just'.`;
+Generate exactly 3 meals. Use ONLY ingredients provided. Respect ALL health rules. Use warm empowering language.`;
 
     try {
       const response = await fetch('/api/meals', {
@@ -503,33 +488,22 @@ Generate exactly 3 meals. Use ONLY ingredients provided. Respect ALL health rule
     data.meals.forEach(meal => {
       const card = document.createElement('div');
       card.className = 'meal-card';
-
       const diffClass = meal.difficulty === 'easy' ? 'badge-easy' : meal.difficulty === 'medium' ? 'badge-medium' : 'badge-hard';
-
-      const healthBadgesHtml = (meal.health_badges?.length)
+      const healthBadgesHtml = meal.health_badges?.length
         ? `<div class="health-badges-row">${meal.health_badges.map(b => `<span class="health-badge">✓ ${b}</span>`).join('')}</div>` : '';
-
-      // Health insights panel — only shown if conditions selected and insights exist
       const healthInsightsHtml = (meal.health_insights?.length && selectedConditions.size > 0)
         ? `<div class="health-explanation">
-            <div class="health-explanation-header">
-              <span style="font-size:16px">🌿</span>
-              <span class="health-explanation-title">Why this is good for you</span>
-            </div>
-            <div class="health-insight-list">
-              ${meal.health_insights.map(insight => `
-                <div class="health-insight">
-                  <div class="insight-icon">${insight.icon}</div>
-                  <div class="insight-text">${insight.text}</div>
-                </div>`).join('')}
-            </div>
-          </div>` : '';
+            <div class="health-explanation-header"><span style="font-size:16px">🌿</span><span class="health-explanation-title">Why this is good for you</span></div>
+            <div class="health-insight-list">${meal.health_insights.map(i => `
+              <div class="health-insight"><div class="insight-icon">${i.icon}</div><div class="insight-text">${i.text}</div></div>`).join('')}
+            </div></div>` : '';
+
+      // Render ingredients with quantities
+      const ingsHtml = meal.ingredients_used.map(i =>
+        `<span class="ing-chip">${i}</span>`).join('');
 
       const stepsHtml = meal.steps.map((step, i) =>
         `<div class="step"><div class="step-num">${i+1}</div><div>${step}</div></div>`).join('');
-
-      const ingsHtml = meal.ingredients_used.map(i =>
-        `<span class="ing-chip">${i}</span>`).join('');
 
       card.innerHTML = `
         <div class="meal-top">
@@ -545,7 +519,7 @@ Generate exactly 3 meals. Use ONLY ingredients provided. Respect ALL health rule
         ${healthInsightsHtml}
         <div class="meal-sections">
           <div>
-            <div class="meal-section-label">Ingredients used</div>
+            <div class="meal-section-label">Quantities needed</div>
             <div class="ingredients-list">${ingsHtml}</div>
           </div>
           <div>
@@ -560,7 +534,6 @@ Generate exactly 3 meals. Use ONLY ingredients provided. Respect ALL health rule
         </div>
         <button class="steps-toggle" onclick="toggleSteps(this)">📋 Show cooking steps</button>
         <div class="steps-content">${stepsHtml}</div>`;
-
       container.appendChild(card);
     });
 
@@ -568,10 +541,7 @@ Generate exactly 3 meals. Use ONLY ingredients provided. Respect ALL health rule
       const s = data.stretch_meal;
       document.getElementById('stretchCard').innerHTML = `
         <div class="stretch-card">
-          <div class="stretch-header">
-            <span style="font-size:20px">✨</span>
-            <span class="stretch-label">One more ingredient unlocks...</span>
-          </div>
+          <div class="stretch-header"><span style="font-size:20px">✨</span><span class="stretch-label">One more ingredient unlocks...</span></div>
           <div class="stretch-title">${s.name}</div>
           <p class="stretch-desc">${s.description}</p>
           <div class="stretch-item">🛒 Just add: ${s.one_extra_item}</div>
