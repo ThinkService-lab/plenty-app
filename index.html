@@ -611,7 +611,7 @@
     'linear-gradient(135deg, #3D2B1F 0%, #6B4A35 50%, #C4622D 100%)'
   ];
 
-  async function shareMeal(btn, mealIdx) {
+  window.shareMeal = async function(btn, mealIdx) {
     const meal = mealsData[mealIdx];
     currentShareMeal = meal;
     currentShareImageUrl = null;
@@ -955,8 +955,13 @@ Rules: exactly 3 meals, ONLY use provided ingredients, respect health rules, nev
         </div>
         <button class="steps-toggle" onclick="toggleSteps(this)">📋 Show cooking steps</button>
         <div class="steps-content">${stepsHtml}</div>
-        <button class="share-btn" onclick="shareMeal(this, ${mealIndex})">📤 Share this meal</button>`;
+        <button class="share-btn" data-mealindex="${mealIndex}">📤 Share this meal</button>`;
       container.appendChild(card);
+      // Attach share button listener safely after card is in DOM
+      const shareBtn = card.querySelector('.share-btn');
+      shareBtn.addEventListener('click', function() {
+        shareMeal(this, parseInt(this.dataset.mealindex));
+      });
     });
 
     if (data.stretch_meal) {
@@ -1044,7 +1049,7 @@ Rules: exactly 3 meals, ONLY use provided ingredients, respect health rules, nev
     'linear-gradient(135deg, #3D2B1F 0%, #6B4A35 50%, #C4622D 100%)'
   ];
 
-  async function shareMeal(btn, mealIdx) {
+  window.shareMeal = async function(btn, mealIdx) {
     const meal = mealsData[mealIdx];
     currentShareMeal = meal;
     currentShareImageUrl = null;
