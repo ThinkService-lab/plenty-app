@@ -470,6 +470,108 @@
   .email-error { font-size: 12px; color: #F5A0A0; margin-top: 8px; display: none; }
   .email-error.show { display: block; }
 
+  /* ── Feedback card ── */
+  .feedback-card {
+    background: white;
+    border: 1.5px solid #EDE8E0;
+    border-radius: 20px;
+    padding: 24px 28px;
+    margin: 0 0 16px;
+    text-align: center;
+    animation: cardSlide 0.4s 0.5s cubic-bezier(0.22,1,0.36,1) both;
+  }
+  .feedback-card h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    color: var(--earth);
+    margin-bottom: 6px;
+  }
+  .feedback-card p {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 16px;
+  }
+  .feedback-thumbs {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 0;
+  }
+  .feedback-thumb-btn {
+    font-size: 32px;
+    background: var(--cream);
+    border: 2px solid #EDE8E0;
+    border-radius: 16px;
+    width: 72px;
+    height: 72px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .feedback-thumb-btn:hover { transform: scale(1.1); border-color: var(--terracotta); }
+  .feedback-thumb-btn.selected-yes { background: #E8F5E9; border-color: #5A7A4E; }
+  .feedback-thumb-btn.selected-no { background: #FDE8E8; border-color: var(--terracotta); }
+  .feedback-detail {
+    margin-top: 16px;
+    display: none;
+  }
+  .feedback-detail.show { display: block; }
+  .feedback-textarea {
+    width: 100%;
+    min-height: 80px;
+    border: 1.5px solid #EDE8E0;
+    border-radius: 12px;
+    padding: 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: var(--earth);
+    resize: none;
+    outline: none;
+    box-sizing: border-box;
+    transition: border-color 0.2s;
+  }
+  .feedback-textarea:focus { border-color: var(--terracotta); }
+  .feedback-textarea::placeholder { color: #C5BDB2; }
+  .feedback-submit-btn {
+    margin-top: 10px;
+    background: var(--terracotta);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 12px 24px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    width: 100%;
+  }
+  .feedback-submit-btn:hover { background: #B0561F; }
+  .feedback-email-prompt {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid #EDE8E0;
+    display: none;
+  }
+  .feedback-email-prompt.show { display: block; }
+  .feedback-email-prompt p {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+  .feedback-success {
+    display: none;
+    padding: 12px;
+    background: #E8F5E9;
+    border-radius: 12px;
+    color: #3D6B30;
+    font-size: 14px;
+    margin-top: 12px;
+  }
+  .feedback-success.show { display: block; }
+
   .share-nudge-card {
     background: linear-gradient(135deg, #5A7A4E 0%, #7A8C6E 100%);
     border-radius: 20px;
@@ -615,6 +717,7 @@
     <div id="mealsContainer"></div>
     <div id="stretchCard"></div>
     <div id="emailSignupCard"></div>
+    <div id="feedbackCard"></div>
     <div id="shareNudgeCard"></div>
     <button class="try-again-btn" onclick="resetApp()">← Try different ingredients</button>
   </div>
@@ -789,7 +892,7 @@ https://plenty-app-nine.vercel.app`;
     document.getElementById('shareFacebook').href = `https://www.facebook.com/sharer/sharer.php?u=https://plenty-app-nine.vercel.app&quote=${encodedText}`;
   }
 
-  function downloadShareImage() {
+  window.downloadShareImage = function downloadShareImage() {
     if (!currentShareImageUrl) return;
     const a = document.createElement('a');
     a.href = currentShareImageUrl;
@@ -797,7 +900,7 @@ https://plenty-app-nine.vercel.app`;
     a.click();
   }
 
-  function copyShareText() {
+  window.copyShareText = function copyShareText() {
     if (!currentShareMeal) return;
     const text = `🌿 ${currentShareMeal.name}
 ${currentShareMeal.affirmation}
@@ -813,7 +916,7 @@ https://plenty-app-nine.vercel.app`;
     });
   }
 
-  function closeShareModal(e) {
+  window.closeShareModal = function closeShareModal(e) {
     if (e && e.target !== document.getElementById('shareModalOverlay')) return;
     document.getElementById('shareModalOverlay').classList.remove('active');
   }
@@ -899,7 +1002,7 @@ https://plenty-app-nine.vercel.app`;
       : `✨ Show me what I can make with ${ingredients.length} ingredient${ingredients.length !== 1 ? 's' : ''}`;
   }
 
-  function resetApp() {
+  window.resetApp = function resetApp() {
     document.getElementById('resultsSection').classList.remove('active');
     document.getElementById('errorState').classList.remove('active');
     document.getElementById('generateBtn').style.display = 'flex';
@@ -976,7 +1079,7 @@ Exactly 3 meals. Only use provided ingredients.${buildHealthInsightsInstruction(
       if (!response.ok) throw new Error(data.error?.message || 'API error');
 
       clearTimeout(slowTimer);
-      console.log('API response:', JSON.stringify(data).substring(0, 500));
+      
       if (data.clean && data.parsed) {
         renderResults(data.parsed);
       } else if (data.raw) {
@@ -1127,6 +1230,79 @@ Exactly 3 meals. Only use provided ingredients.${buildHealthInsightsInstruction(
     document.getElementById('emailField').addEventListener('keydown', e => {
       if (e.key === 'Enter') submitEmail();
     });
+
+    // Render feedback card
+    const hasSubscribed = window.plentySubscribed || false;
+    document.getElementById('feedbackCard').innerHTML = `
+      <div class="feedback-card">
+        <h3>Did these meals help you?</h3>
+        <p>Your feedback helps us get better at this</p>
+        <div class="feedback-thumbs">
+          <button class="feedback-thumb-btn" id="feedbackYes">👍</button>
+          <button class="feedback-thumb-btn" id="feedbackNo">👎</button>
+        </div>
+        <div class="feedback-detail" id="feedbackDetail">
+          <textarea class="feedback-textarea" id="feedbackText" placeholder="Tell us more (optional)..."></textarea>
+          <button class="feedback-submit-btn" id="feedbackSubmitBtn">Send feedback</button>
+          <div class="feedback-email-prompt" id="feedbackEmailPrompt">
+            <p>💌 Want us to send you new meal ideas and save your preferences?</p>
+            <div class="email-row">
+              <input type="email" class="email-field" id="feedbackEmailField" placeholder="your@email.com" />
+              <button class="email-submit-btn" id="feedbackEmailBtn">Join free</button>
+            </div>
+          </div>
+          <div class="feedback-success" id="feedbackSuccess">✨ Thanks! Your feedback means a lot.</div>
+        </div>
+      </div>`;
+
+    // Feedback thumb buttons
+    let feedbackVote = null;
+    document.getElementById('feedbackYes').addEventListener('click', function() {
+      feedbackVote = 'yes';
+      this.classList.add('selected-yes');
+      document.getElementById('feedbackNo').classList.remove('selected-no');
+      document.getElementById('feedbackDetail').classList.add('show');
+      if (!hasSubscribed) document.getElementById('feedbackEmailPrompt').classList.add('show');
+    });
+    document.getElementById('feedbackNo').addEventListener('click', function() {
+      feedbackVote = 'no';
+      this.classList.add('selected-no');
+      document.getElementById('feedbackYes').classList.remove('selected-yes');
+      document.getElementById('feedbackDetail').classList.add('show');
+      if (!hasSubscribed) document.getElementById('feedbackEmailPrompt').classList.add('show');
+    });
+
+    // Feedback submit
+    document.getElementById('feedbackSubmitBtn').addEventListener('click', async function() {
+      const text = document.getElementById('feedbackText').value.trim();
+      const email = document.getElementById('feedbackEmailField')?.value.trim() || '';
+      this.disabled = true;
+      this.textContent = 'Sending...';
+      try {
+        const params = new URLSearchParams({
+          type: 'feedback',
+          vote: feedbackVote || 'none',
+          message: text,
+          email: email,
+          source: 'Plenty Feedback'
+        });
+        await fetch(SHEETS_URL + '?' + params.toString(), { method: 'GET', redirect: 'follow' });
+        if (email) window.plentySubscribed = true;
+      } catch(e) {}
+      document.getElementById('feedbackSuccess').classList.add('show');
+      document.getElementById('feedbackSubmitBtn').style.display = 'none';
+      document.getElementById('feedbackEmailPrompt').style.display = 'none';
+    });
+
+    // Feedback email join button
+    const feedbackEmailBtn = document.getElementById('feedbackEmailBtn');
+    if (feedbackEmailBtn) {
+      feedbackEmailBtn.addEventListener('click', function() {
+        const emailVal = document.getElementById('feedbackEmailField').value.trim();
+        if (emailVal) document.getElementById('feedbackText').value =
+          document.getElementById('feedbackText').value; // just keep text as is
+      });
+    }
 
     // Share nudge card
     const appUrl = 'https://plenty-app-nine.vercel.app';
