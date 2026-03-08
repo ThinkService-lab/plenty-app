@@ -592,18 +592,19 @@ Generate exactly 3 meals. Use ONLY ingredients provided. Respect ALL health rule
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
+          model: 'claude-sonnet-4-5',
           max_tokens: 2000,
           messages: [{ role: 'user', content: prompt }]
         })
       });
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error?.message || 'API error');
+      if (!response.ok) throw new Error(data.error?.message || JSON.stringify(data));
+      if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
       const text = data.content.map(b => b.text || '').join('');
       // Robustly extract JSON — find the first { and last }
       const jsonStart = text.indexOf('{');
       const jsonEnd = text.lastIndexOf('}');
-      if (jsonStart === -1 || jsonEnd === -1) throw new Error('No valid response received. Please try again.');
+      if (jsonStart === -1 || jsonEnd === -1) throw new Error('No valid response received. Raw: ' + text.substring(0, 200));
       const jsonStr = text.substring(jsonStart, jsonEnd + 1);
       renderResults(JSON.parse(jsonStr));
     } catch (err) {
