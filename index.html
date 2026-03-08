@@ -367,8 +367,6 @@
 <footer>Plenty — because you have more than you think 🌿</footer>
 
 <script>
-  const UNSPLASH_KEY = '9PRBw6jTeOz7j3MQoVdXJfzlmRxRoeZsLjLTtyN06vE';
-
   const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwd-xuLj8t3mQABSLZ8m5pe9arxOKr6qRkTLkbDnyS-0UCuhqia-fFRC8FgZLKeV25a/exec';
 
   const CONDITIONS = [
@@ -577,15 +575,9 @@ Rules: exactly 3 meals, ONLY use provided ingredients, respect health rules, nev
 
   async function fetchMealPhoto(mealName) {
     try {
-      const query = encodeURIComponent(mealName + ' food dish');
-      const res = await fetch(
-        `https://api.unsplash.com/search/photos?query=${query}&per_page=1&orientation=landscape`,
-        { headers: { Authorization: `Client-ID ${UNSPLASH_KEY}` } }
-      );
+      const res = await fetch(`/api/photo?query=${encodeURIComponent(mealName + ' food dish')}`);
       const data = await res.json();
-      if (data.results && data.results.length > 0) {
-        return data.results[0].urls.regular;
-      }
+      return data.url || null;
     } catch (e) {}
     return null;
   }
