@@ -970,7 +970,7 @@ Exactly 3 meals. Only use provided ingredients.${buildHealthInsightsInstruction(
       const response = await fetch('/api/meals', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ max_tokens: 1200, messages: [{ role: 'user', content: prompt }] })
+        body: JSON.stringify({ max_tokens: 1800, messages: [{ role: 'user', content: prompt }] })
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error?.message || 'API error');
@@ -997,8 +997,15 @@ Exactly 3 meals. Only use provided ingredients.${buildHealthInsightsInstruction(
 
   // ── Render results ──
   function renderResults(data) {
-    mealsData = data.meals;
+    mealsData = data.meals || [];
     document.getElementById('loadingState').classList.remove('active');
+
+    if (!data.meals || data.meals.length === 0) {
+      document.getElementById('errorState').classList.add('active');
+      document.getElementById('errorMsg').textContent = 'Couldn\'t generate meals — please try again.';
+      document.getElementById('generateBtn').style.display = 'flex';
+      return;
+    }
     document.getElementById('confidenceBanner').innerHTML = `
       <div class="big-num">${data.meal_count_celebration}</div>
       <p>${data.confidence_message}</p>`;
