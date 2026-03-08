@@ -1289,6 +1289,10 @@ Exactly 3 meals. Only use provided ingredients.${buildHealthInsightsInstruction(
         await fetch(SHEETS_URL + '?' + params.toString(), { method: 'GET', redirect: 'follow' });
         if (email) window.plentySubscribed = true;
       } catch(e) {}
+      const textarea = document.getElementById('feedbackText');
+      textarea.value = '';
+      textarea.disabled = true;
+      textarea.placeholder = 'Feedback sent ✓';
       document.getElementById('feedbackSuccess').classList.add('show');
       document.getElementById('feedbackSubmitBtn').style.display = 'none';
       document.getElementById('feedbackEmailPrompt').style.display = 'none';
