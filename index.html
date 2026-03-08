@@ -600,7 +600,12 @@ Generate exactly 3 meals. Use ONLY ingredients provided. Respect ALL health rule
       const data = await response.json();
       if (!response.ok) throw new Error(data.error?.message || 'API error');
       const text = data.content.map(b => b.text || '').join('');
-      renderResults(JSON.parse(text.replace(/```json|```/g, '').trim()));
+      // Robustly extract JSON — find the first { and last }
+      const jsonStart = text.indexOf('{');
+      const jsonEnd = text.lastIndexOf('}');
+      if (jsonStart === -1 || jsonEnd === -1) throw new Error('No valid response received. Please try again.');
+      const jsonStr = text.substring(jsonStart, jsonEnd + 1);
+      renderResults(JSON.parse(jsonStr));
     } catch (err) {
       document.getElementById('loadingState').classList.remove('active');
       document.getElementById('errorState').classList.add('active');
