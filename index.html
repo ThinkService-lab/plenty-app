@@ -217,6 +217,152 @@
     font-size: 11px;
     backdrop-filter: blur(4px);
   }
+
+  /* Share button & modal */
+  .share-btn {
+    width: 100%;
+    background: linear-gradient(135deg, var(--terracotta), #E8835A);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 16px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .share-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(196,98,45,0.3); }
+
+  .share-modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 1000;
+    align-items: flex-end;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+  }
+  .share-modal-overlay.active { display: flex; }
+  .share-modal {
+    background: var(--warm-white);
+    border-radius: 24px 24px 0 0;
+    padding: 28px 24px 40px;
+    width: 100%;
+    max-width: 480px;
+    animation: slideUp 0.3s cubic-bezier(0.22,1,0.36,1);
+  }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  .share-modal-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    color: var(--earth);
+    margin-bottom: 6px;
+    text-align: center;
+  }
+  .share-modal-subtitle {
+    font-size: 13px;
+    color: var(--muted);
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .share-preview {
+    width: 100%;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    display: block;
+    border: 1px solid #EDE8E0;
+  }
+  .share-preview-loading {
+    width: 100%;
+    height: 120px;
+    border-radius: 12px;
+    background: var(--light-sage);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .share-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .share-option {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px;
+    border-radius: 12px;
+    border: 1.5px solid #DDD5C8;
+    background: white;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--earth);
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+  }
+  .share-option:hover { border-color: var(--terracotta); background: #FDE8E8; }
+  .share-option-whatsapp { border-color: #25D366; }
+  .share-option-whatsapp:hover { background: #F0FFF4; border-color: #25D366; }
+  .share-close {
+    width: 100%;
+    background: none;
+    border: 1.5px solid #DDD5C8;
+    border-radius: 12px;
+    padding: 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .share-close:hover { border-color: var(--terracotta); color: var(--terracotta); }
+
+  /* Share card — what gets captured as image */
+  .share-card-capture {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    width: 400px;
+    position: fixed;
+    left: -9999px;
+    top: 0;
+  }
+  .share-card-header {
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  .share-card-emoji { font-size: 40px; margin-bottom: 8px; }
+  .share-card-name { font-family: 'Playfair Display', serif; font-size: 20px; color: white; text-shadow: 0 1px 4px rgba(0,0,0,0.3); line-height: 1.3; }
+  .share-card-meta { font-size: 12px; color: rgba(255,255,255,0.85); margin-top: 6px; }
+  .share-card-affirmation { font-family: 'Playfair Display', serif; font-style: italic; color: var(--terracotta); font-size: 13px; margin-bottom: 10px; text-align: center; }
+  .share-card-section { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 6px; margin-top: 12px; }
+  .share-card-ings { display: flex; flex-wrap: wrap; gap: 4px; }
+  .share-card-ing { background: var(--light-sage); padding: 2px 8px; border-radius: 100px; font-size: 11px; color: var(--earth); }
+  .share-card-steps { list-style: none; }
+  .share-card-step { display: flex; gap: 8px; font-size: 12px; color: #6B5E52; margin-bottom: 6px; line-height: 1.5; }
+  .share-card-step-num { width: 18px; height: 18px; background: var(--terracotta); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; flex-shrink: 0; margin-top: 1px; }
+  .share-card-footer { margin-top: 14px; padding-top: 10px; border-top: 1px solid #EDE8E0; text-align: center; font-size: 11px; color: var(--muted); }
+  .share-card-footer strong { color: var(--terracotta); }
+
   /* Email signup */
   .email-signup-card {
     background: linear-gradient(135deg, #3D2B1F 0%, #5C3D2A 100%);
@@ -291,6 +437,7 @@
 
   footer { text-align: center; padding: 24px 0 48px; font-size: 12px; color: #C5BDB2; }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
 <div class="container">
@@ -399,6 +546,28 @@
   </div>
 
 </div>
+
+<!-- Share Modal -->
+<div class="share-modal-overlay" id="shareModalOverlay" onclick="closeShareModal(event)">
+  <div class="share-modal">
+    <p class="share-modal-title">Share this meal 📤</p>
+    <p class="share-modal-subtitle">Inspire someone with what you can make tonight</p>
+    <div class="share-preview-loading" id="sharePreviewLoading">Preparing your image...</div>
+    <img class="share-preview" id="sharePreviewImg" style="display:none" />
+    <div class="share-options">
+      <a class="share-option share-option-whatsapp" id="shareWhatsapp" href="#" target="_blank">💬 WhatsApp</a>
+      <a class="share-option" id="shareFacebook" href="#" target="_blank">📘 Facebook</a>
+      <button class="share-option" id="shareDownload" onclick="downloadShareImage()">💾 Download</button>
+      <button class="share-option" id="shareCopy" onclick="copyShareText()">📋 Copy text</button>
+    </div>
+    <p style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:12px;">For Instagram & TikTok — download the image then upload it to your story</p>
+    <button class="share-close" onclick="closeShareModal()">Close</button>
+  </div>
+</div>
+
+<!-- Hidden share card for image capture -->
+<div class="share-card-capture" id="shareCardCapture"></div>
+
 <footer>Plenty — because you have more than you think 🌿</footer>
 
 <script>
@@ -430,7 +599,108 @@
 
   function toggleCondition(id) {
     selectedConditions.has(id) ? selectedConditions.delete(id) : selectedConditions.add(id);
-    renderHealthGrid();
+  
+  // ── Share feature ──
+  let currentShareMeal = null;
+  let currentShareImageUrl = null;
+
+  const SHARE_GRADIENTS = [
+    'linear-gradient(135deg, #C4622D 0%, #E8835A 50%, #D4A847 100%)',
+    'linear-gradient(135deg, #5A7A4E 0%, #7A8C6E 50%, #A8C49A 100%)',
+    'linear-gradient(135deg, #3D2B1F 0%, #6B4A35 50%, #C4622D 100%)'
+  ];
+
+  async function shareMeal(btn, meal) {
+    currentShareMeal = meal;
+    currentShareImageUrl = null;
+
+    // Show modal
+    document.getElementById('shareModalOverlay').classList.add('active');
+    document.getElementById('sharePreviewLoading').style.display = 'flex';
+    document.getElementById('sharePreviewImg').style.display = 'none';
+
+    // Build the capture card
+    const cardIndex = [...document.querySelectorAll('.share-btn')].indexOf(btn) % 3;
+    const gradient = SHARE_GRADIENTS[cardIndex];
+    const emojis = ['🍲','🥘','🍛','🥗','🍜','🫕'];
+    const emoji = emojis[Math.floor(Math.random() * emojis.length)];
+
+    const stepsHtml = (meal.steps || []).map((step, i) =>
+      `<div class="share-card-step"><div class="share-card-step-num">${i+1}</div><div>${step}</div></div>`
+    ).join('');
+
+    const ingsHtml = (meal.ingredients_used || []).map(i =>
+      `<span class="share-card-ing">${i}</span>`
+    ).join('');
+
+    document.getElementById('shareCardCapture').innerHTML = `
+      <div class="share-card-header" style="background: ${gradient}">
+        <div class="share-card-emoji">${emoji}</div>
+        <div class="share-card-name">${meal.name}</div>
+        <div class="share-card-meta">⏱ ${meal.time_minutes} min · ${meal.difficulty}</div>
+      </div>
+      <p class="share-card-affirmation">"${meal.affirmation}"</p>
+      <div class="share-card-section">Ingredients</div>
+      <div class="share-card-ings">${ingsHtml}</div>
+      <div class="share-card-section">Steps</div>
+      <div class="share-card-steps">${stepsHtml}</div>
+      <div class="share-card-footer">Made with <strong>Plenty</strong> — you have more than you think 🌿</div>`;
+
+    // Capture as image
+    try {
+      const canvas = await html2canvas(document.getElementById('shareCardCapture'), {
+        scale: 2, backgroundColor: '#ffffff', useCORS: true
+      });
+      currentShareImageUrl = canvas.toDataURL('image/png');
+      document.getElementById('sharePreviewImg').src = currentShareImageUrl;
+      document.getElementById('sharePreviewImg').style.display = 'block';
+      document.getElementById('sharePreviewLoading').style.display = 'none';
+    } catch(e) {
+      document.getElementById('sharePreviewLoading').textContent = 'Preview unavailable — use Download';
+    }
+
+    // Set up share links
+    const text = `🌿 Check out this meal I can make tonight with Plenty!
+
+*${meal.name}*
+${meal.affirmation}
+
+Ingredients: ${(meal.ingredients_used||[]).join(', ')}
+
+Discover your meals at plenty-app-nine.vercel.app`;
+    const encodedText = encodeURIComponent(text);
+    document.getElementById('shareWhatsapp').href = `https://wa.me/?text=${encodedText}`;
+    document.getElementById('shareFacebook').href = `https://www.facebook.com/sharer/sharer.php?u=https://plenty-app-nine.vercel.app&quote=${encodedText}`;
+  }
+
+  function downloadShareImage() {
+    if (!currentShareImageUrl) return;
+    const a = document.createElement('a');
+    a.href = currentShareImageUrl;
+    a.download = (currentShareMeal?.name || 'meal').replace(/\s+/g, '-') + '-plenty.png';
+    a.click();
+  }
+
+  function copyShareText() {
+    if (!currentShareMeal) return;
+    const text = `🌿 ${currentShareMeal.name}
+${currentShareMeal.affirmation}
+
+Ingredients: ${(currentShareMeal.ingredients_used||[]).join(', ')}
+
+Made with Plenty — plenty-app-nine.vercel.app`;
+    navigator.clipboard.writeText(text).then(() => {
+      document.getElementById('shareCopy').textContent = '✓ Copied!';
+      setTimeout(() => document.getElementById('shareCopy').textContent = '📋 Copy text', 2000);
+    });
+  }
+
+  function closeShareModal(e) {
+    if (e && e.target !== document.getElementById('shareModalOverlay')) return;
+    document.getElementById('shareModalOverlay').classList.remove('active');
+  }
+
+  renderHealthGrid();
     updateHealthSummary();
   }
 
@@ -681,7 +951,8 @@ Rules: exactly 3 meals, ONLY use provided ingredients, respect health rules, nev
           </div>
         </div>
         <button class="steps-toggle" onclick="toggleSteps(this)">📋 Show cooking steps</button>
-        <div class="steps-content">${stepsHtml}</div>`;
+        <div class="steps-content">${stepsHtml}</div>
+        <button class="share-btn" onclick="shareMeal(this, ${JSON.stringify(meal).replace(/`/g, '\`')})">📤 Share this meal</button>`;
       container.appendChild(card);
     });
 
@@ -756,6 +1027,107 @@ Rules: exactly 3 meals, ONLY use provided ingredients, respect health rules, nev
       error.textContent = 'Could not connect — please try again.';
       error.classList.add('show');
     }
+  }
+
+
+  // ── Share feature ──
+  let currentShareMeal = null;
+  let currentShareImageUrl = null;
+
+  const SHARE_GRADIENTS = [
+    'linear-gradient(135deg, #C4622D 0%, #E8835A 50%, #D4A847 100%)',
+    'linear-gradient(135deg, #5A7A4E 0%, #7A8C6E 50%, #A8C49A 100%)',
+    'linear-gradient(135deg, #3D2B1F 0%, #6B4A35 50%, #C4622D 100%)'
+  ];
+
+  async function shareMeal(btn, meal) {
+    currentShareMeal = meal;
+    currentShareImageUrl = null;
+
+    // Show modal
+    document.getElementById('shareModalOverlay').classList.add('active');
+    document.getElementById('sharePreviewLoading').style.display = 'flex';
+    document.getElementById('sharePreviewImg').style.display = 'none';
+
+    // Build the capture card
+    const cardIndex = [...document.querySelectorAll('.share-btn')].indexOf(btn) % 3;
+    const gradient = SHARE_GRADIENTS[cardIndex];
+    const emojis = ['🍲','🥘','🍛','🥗','🍜','🫕'];
+    const emoji = emojis[Math.floor(Math.random() * emojis.length)];
+
+    const stepsHtml = (meal.steps || []).map((step, i) =>
+      `<div class="share-card-step"><div class="share-card-step-num">${i+1}</div><div>${step}</div></div>`
+    ).join('');
+
+    const ingsHtml = (meal.ingredients_used || []).map(i =>
+      `<span class="share-card-ing">${i}</span>`
+    ).join('');
+
+    document.getElementById('shareCardCapture').innerHTML = `
+      <div class="share-card-header" style="background: ${gradient}">
+        <div class="share-card-emoji">${emoji}</div>
+        <div class="share-card-name">${meal.name}</div>
+        <div class="share-card-meta">⏱ ${meal.time_minutes} min · ${meal.difficulty}</div>
+      </div>
+      <p class="share-card-affirmation">"${meal.affirmation}"</p>
+      <div class="share-card-section">Ingredients</div>
+      <div class="share-card-ings">${ingsHtml}</div>
+      <div class="share-card-section">Steps</div>
+      <div class="share-card-steps">${stepsHtml}</div>
+      <div class="share-card-footer">Made with <strong>Plenty</strong> — you have more than you think 🌿</div>`;
+
+    // Capture as image
+    try {
+      const canvas = await html2canvas(document.getElementById('shareCardCapture'), {
+        scale: 2, backgroundColor: '#ffffff', useCORS: true
+      });
+      currentShareImageUrl = canvas.toDataURL('image/png');
+      document.getElementById('sharePreviewImg').src = currentShareImageUrl;
+      document.getElementById('sharePreviewImg').style.display = 'block';
+      document.getElementById('sharePreviewLoading').style.display = 'none';
+    } catch(e) {
+      document.getElementById('sharePreviewLoading').textContent = 'Preview unavailable — use Download';
+    }
+
+    // Set up share links
+    const text = `🌿 Check out this meal I can make tonight with Plenty!
+
+*${meal.name}*
+${meal.affirmation}
+
+Ingredients: ${(meal.ingredients_used||[]).join(', ')}
+
+Discover your meals at plenty-app-nine.vercel.app`;
+    const encodedText = encodeURIComponent(text);
+    document.getElementById('shareWhatsapp').href = `https://wa.me/?text=${encodedText}`;
+    document.getElementById('shareFacebook').href = `https://www.facebook.com/sharer/sharer.php?u=https://plenty-app-nine.vercel.app&quote=${encodedText}`;
+  }
+
+  function downloadShareImage() {
+    if (!currentShareImageUrl) return;
+    const a = document.createElement('a');
+    a.href = currentShareImageUrl;
+    a.download = (currentShareMeal?.name || 'meal').replace(/\s+/g, '-') + '-plenty.png';
+    a.click();
+  }
+
+  function copyShareText() {
+    if (!currentShareMeal) return;
+    const text = `🌿 ${currentShareMeal.name}
+${currentShareMeal.affirmation}
+
+Ingredients: ${(currentShareMeal.ingredients_used||[]).join(', ')}
+
+Made with Plenty — plenty-app-nine.vercel.app`;
+    navigator.clipboard.writeText(text).then(() => {
+      document.getElementById('shareCopy').textContent = '✓ Copied!';
+      setTimeout(() => document.getElementById('shareCopy').textContent = '📋 Copy text', 2000);
+    });
+  }
+
+  function closeShareModal(e) {
+    if (e && e.target !== document.getElementById('shareModalOverlay')) return;
+    document.getElementById('shareModalOverlay').classList.remove('active');
   }
 
   renderHealthGrid();
