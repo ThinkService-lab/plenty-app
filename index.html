@@ -345,6 +345,8 @@
 <footer>Plenty — because you have more than you think 🌿</footer>
 
 <script>
+  const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwd-xuLj8t3mQABSLZ8m5pe9arxOKr6qRkTLkbDnyS-0UCuhqia-fFRC8FgZLKeV25a/exec';
+
   const CONDITIONS = [
     { id: 'diabetes',     emoji: '🩸', name: 'Diabetes / Pre-diabetes', desc: 'Low glycemic, controlled carbs',    rules: 'low glycemic index foods, controlled carbohydrates, no added sugar, high fibre' },
     { id: 'cholesterol',  emoji: '💛', name: 'High Cholesterol',         desc: 'Low saturated fat, high fibre',    rules: 'low saturated fat, no trans fats, high soluble fibre, heart-healthy unsaturated fats like olive oil' },
@@ -357,9 +359,9 @@
   ];
 
   let selectedConditions = new Set();
-  // ingredients is now an array of { name, qty } objects
   let ingredients = [];
 
+  // ── Health panel ──
   function renderHealthGrid() {
     document.getElementById('healthGrid').innerHTML = CONDITIONS.map(c => `
       <button class="hc-btn ${selectedConditions.has(c.id) ? 'selected' : ''}" onclick="toggleCondition('${c.id}')">
@@ -371,51 +373,8 @@
 
   function toggleCondition(id) {
     selectedConditions.has(id) ? selectedConditions.delete(id) : selectedConditions.add(id);
-  
-  const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwd-xuLj8t3mQABSLZ8m5pe9arxOKr6qRkTLkbDnyS-0UCuhqia-fFRC8FgZLKeV25a/exec';
-
-  async function submitEmail() {
-    const emailField = document.getElementById('emailField');
-    const btn = document.getElementById('emailJoinBtn');
-    const success = document.getElementById('emailSuccess');
-    const error = document.getElementById('emailError');
-    const email = emailField.value.trim();
-
-    if (!email || !email.includes('@')) {
-      error.textContent = 'Please enter a valid email address.';
-      error.classList.add('show');
-      return;
-    }
-
-    btn.disabled = true;
-    btn.textContent = 'Joining...';
-    error.classList.remove('show');
-    success.classList.remove('show');
-
-    try {
-      const res = await fetch('/api/subscribe', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, source: 'Plenty App' })
-      });
-
-      // Always show success to user — even if sheet write has CORS issues
-      // the server received it
-      emailField.style.display = 'none';
-      btn.style.display = 'none';
-      success.classList.add('show');
-
-    } catch (err) {
-      btn.disabled = false;
-      btn.textContent = 'Join free';
-      error.textContent = 'Could not connect — check your internet and try again.';
-      error.classList.add('show');
-    }
-  }
-
-
-
-  renderHealthGrid(); updateHealthSummary();
+    renderHealthGrid();
+    updateHealthSummary();
   }
 
   function updateHealthSummary() {
@@ -435,17 +394,14 @@
     document.getElementById('healthArrow').classList.toggle('open');
   }
 
+  // ── Ingredient input ──
   const ingInput = document.getElementById('ingredientInput');
   ingInput.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addIngredient(); } });
 
-  // Parse "2 eggs" or "500g chicken" or just "rice" into { name, qty }
   function parseIngredient(raw) {
     const val = raw.trim().toLowerCase();
-    // Match patterns like "2 eggs", "500g rice", "1 cup flour", "3 large carrots"
     const match = val.match(/^([\d.]+\s*(?:g|kg|ml|l|cup|cups|tbsp|tsp|oz|lb|lbs|cloves?|can|cans|large|medium|small|bunch|handful|slice|slices|piece|pieces)?\s+)(.+)$/i);
-    if (match) {
-      return { qty: match[1].trim(), name: match[2].trim() };
-    }
+    if (match) return { qty: match[1].trim(), name: match[2].trim() };
     return { qty: '', name: val };
   }
 
@@ -454,25 +410,26 @@
     if (!raw) return;
     raw.split(',').map(s => s.trim()).filter(Boolean).forEach(item => {
       const parsed = parseIngredient(item);
-      if (!ingredients.find(i => i.name === parsed.name)) {
-        ingredients.push(parsed);
-      }
+      if (!ingredients.find(i => i.name === parsed.name)) ingredients.push(parsed);
     });
     ingInput.value = '';
     ingInput.focus();
-    renderTags(); updateBtn();
+    renderTags();
+    updateBtn();
   }
 
   function quickAdd(name, qty) {
     if (!ingredients.find(i => i.name === name)) {
       ingredients.push({ name, qty });
-      renderTags(); updateBtn();
+      renderTags();
+      updateBtn();
     }
   }
 
   function removeIngredient(name) {
     ingredients = ingredients.filter(i => i.name !== name);
-    renderTags(); updateBtn();
+    renderTags();
+    updateBtn();
   }
 
   function renderTags() {
@@ -502,6 +459,7 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
+  // ── Prompt builders ──
   function buildIngredientsList() {
     return ingredients.map(i => i.qty ? `${i.qty} of ${i.name}` : i.name).join(', ');
   }
@@ -511,16 +469,23 @@
     const rules = [...selectedConditions].map(id => {
       const c = CONDITIONS.find(x => x.id === id);
       return `- ${c.name}: ${c.rules}`;
-    }).join('\n');
-    return `\n\nCRITICAL HEALTH REQUIREMENTS:\n${rules}`;
+    }).join('
+');
+    return `
+
+CRITICAL HEALTH REQUIREMENTS:
+${rules}`;
   }
 
   function buildHealthInsightsInstruction() {
     if (selectedConditions.size === 0) return '';
     const condNames = [...selectedConditions].map(id => CONDITIONS.find(x => x.id === id).name).join(', ');
-    return `\n\nFor each meal include a "health_insights" array of 2-4 objects explaining WHY specific ingredients benefit the user's conditions (${condNames}). Each must mention the actual ingredient by name. Plain friendly language. Format: { "icon": "🫒", "text": "<b>Olive oil</b> contains oleic acid which actively lowers LDL cholesterol." }`;
+    return `
+
+For each meal include "health_insights": array of 2-3 objects like { "icon": "🫒", "text": "<b>Olive oil</b> helps lower LDL cholesterol." } explaining why ingredients benefit the user (${condNames}).`;
   }
 
+  // ── Generate meals ──
   async function generateMeals() {
     const diet = document.getElementById('dietPref').value;
     const skill = document.getElementById('skillLevel').value;
@@ -569,23 +534,14 @@ Rules: exactly 3 meals, ONLY use provided ingredients, respect health rules, nev
       const response = await fetch('/api/meals', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-6',
-          max_tokens: 2500,
-          messages: [{ role: 'user', content: prompt }]
-        })
+        body: JSON.stringify({ max_tokens: 2500, messages: [{ role: 'user', content: prompt }] })
       });
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error?.message || JSON.stringify(data));
-      if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
-      // Backend now pre-parses the JSON for us
+      if (!response.ok) throw new Error(data.error?.message || 'API error');
+
       if (data.clean && data.parsed) {
         renderResults(data.parsed);
-      } else if (data.raw) {
-        // Fallback: try parsing the raw string client-side
-        renderResults(JSON.parse(data.raw));
       } else {
-        // Legacy fallback for plain Anthropic response
         const text = data.content.map(b => b.text || '').join('');
         const jsonStart = text.indexOf('{');
         const jsonEnd = text.lastIndexOf('}');
@@ -600,6 +556,7 @@ Rules: exactly 3 meals, ONLY use provided ingredients, respect health rules, nev
     }
   }
 
+  // ── Render results ──
   function renderResults(data) {
     document.getElementById('loadingState').classList.remove('active');
     document.getElementById('confidenceBanner').innerHTML = `
@@ -616,8 +573,10 @@ Rules: exactly 3 meals, ONLY use provided ingredients, respect health rules, nev
       const card = document.createElement('div');
       card.className = 'meal-card';
       const diffClass = meal.difficulty === 'easy' ? 'badge-easy' : meal.difficulty === 'medium' ? 'badge-medium' : 'badge-hard';
+
       const healthBadgesHtml = meal.health_badges?.length
         ? `<div class="health-badges-row">${meal.health_badges.map(b => `<span class="health-badge">✓ ${b}</span>`).join('')}</div>` : '';
+
       const healthInsightsHtml = (meal.health_insights?.length && selectedConditions.size > 0)
         ? `<div class="health-explanation">
             <div class="health-explanation-header"><span style="font-size:16px">🌿</span><span class="health-explanation-title">Why this is good for you</span></div>
@@ -625,10 +584,7 @@ Rules: exactly 3 meals, ONLY use provided ingredients, respect health rules, nev
               <div class="health-insight"><div class="insight-icon">${i.icon}</div><div class="insight-text">${i.text}</div></div>`).join('')}
             </div></div>` : '';
 
-      // Render ingredients with quantities
-      const ingsHtml = meal.ingredients_used.map(i =>
-        `<span class="ing-chip">${i}</span>`).join('');
-
+      const ingsHtml = meal.ingredients_used.map(i => `<span class="ing-chip">${i}</span>`).join('');
       const stepsHtml = meal.steps.map((step, i) =>
         `<div class="step"><div class="step-num">${i+1}</div><div>${step}</div></div>`).join('');
 
@@ -675,7 +631,7 @@ Rules: exactly 3 meals, ONLY use provided ingredients, respect health rules, nev
         </div>`;
     }
 
-    // Render email signup card dynamically so onclick works
+    // Render email card dynamically so event listeners attach correctly
     document.getElementById('emailSignupCard').innerHTML = `
       <div class="email-signup-card">
         <h3>🌿 Want a week of meal ideas?</h3>
@@ -700,6 +656,41 @@ Rules: exactly 3 meals, ONLY use provided ingredients, respect health rules, nev
     const content = btn.nextElementSibling;
     content.classList.toggle('open');
     btn.textContent = content.classList.contains('open') ? '📋 Hide cooking steps' : '📋 Show cooking steps';
+  }
+
+  // ── Email signup ──
+  async function submitEmail() {
+    const emailField = document.getElementById('emailField');
+    const btn = document.getElementById('emailJoinBtn');
+    const success = document.getElementById('emailSuccess');
+    const error = document.getElementById('emailError');
+    const email = emailField.value.trim();
+
+    if (!email || !email.includes('@')) {
+      error.textContent = 'Please enter a valid email address.';
+      error.classList.add('show');
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Joining...';
+    error.classList.remove('show');
+
+    try {
+      await fetch('/api/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, source: 'Plenty App' })
+      });
+      emailField.style.display = 'none';
+      btn.style.display = 'none';
+      success.classList.add('show');
+    } catch (err) {
+      btn.disabled = false;
+      btn.textContent = 'Join free';
+      error.textContent = 'Could not connect — please try again.';
+      error.classList.add('show');
+    }
   }
 
   renderHealthGrid();
