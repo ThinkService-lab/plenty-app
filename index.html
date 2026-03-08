@@ -342,7 +342,7 @@
       <p>Join people eating well on a budget.<br>Get new ideas and features straight to your inbox.</p>
       <div class="email-row">
         <input type="email" class="email-field" id="emailField" placeholder="your@email.com" />
-        <button class="email-submit-btn" id="emailJoinBtn">Join free</button>
+        <button class="email-submit-btn" id="emailJoinBtn" onclick="submitEmail()">Join free</button>
       </div>
       <div class="email-success" id="emailSuccess">✨ You're in! Welcome to Plenty.</div>
       <div class="email-error" id="emailError">Something went wrong — please try again.</div>
@@ -383,7 +383,7 @@
   
   const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwd-xuLj8t3mQABSLZ8m5pe9arxOKr6qRkTLkbDnyS-0UCuhqia-fFRC8FgZLKeV25a/exec';
 
-  async function submitEmail() {
+  window.submitEmail = async function() {
     const emailField = document.getElementById('emailField');
     const btn = document.getElementById('emailJoinBtn');
     const success = document.getElementById('emailSuccess');
@@ -422,11 +422,7 @@
     }
   }
 
-  // Attach email button and enter key after DOM is ready
-  document.getElementById('emailJoinBtn').addEventListener('click', submitEmail);
-  document.getElementById('emailField').addEventListener('keydown', e => {
-    if (e.key === 'Enter') submitEmail();
-  });
+
 
   renderHealthGrid(); updateHealthSummary();
   }
