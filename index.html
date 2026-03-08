@@ -664,11 +664,11 @@
     if (action === 'like') {
       btn.classList.add('liked');
       sessionRatings.liked.push(meal.name);
-      feedback.textContent = 'Great choice! We'll suggest more like this.';
+      feedback.textContent = "Great choice! We'll suggest more like this.";
     } else {
       btn.classList.add('disliked');
       sessionRatings.disliked.push(meal.name);
-      feedback.textContent = 'Noted! We'll try something different next time.';
+      feedback.textContent = "Noted! We'll try something different next time!";
     }
     feedback.classList.add('show');
   }
