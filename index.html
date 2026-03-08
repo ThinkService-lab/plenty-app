@@ -944,7 +944,7 @@ Rules: exactly 3 meals, ONLY use provided ingredients, respect health rules, nev
       const response = await fetch('/api/meals', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ max_tokens: 2500, messages: [{ role: 'user', content: prompt }] })
+        body: JSON.stringify({ max_tokens: 1800, messages: [{ role: 'user', content: prompt }] })
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error?.message || 'API error');
