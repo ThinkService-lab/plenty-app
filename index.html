@@ -1137,55 +1137,6 @@ Rules: exactly 3 meals, ONLY use provided ingredients, respect health rules, nev
   }
 
 
-
-  // ── Rating feature ──
-  function rateMeal(mealIdx, action, btn) {
-    const meal = mealsData[mealIdx];
-    if (!meal) return;
-
-    const card = btn.closest('.meal-card');
-    const likeBtn = card.querySelector('[data-action="like"]');
-    const dislikeBtn = card.querySelector('[data-action="dislike"]');
-    const feedback = card.querySelector('.rating-feedback');
-
-    // Toggle off if already rated same way
-    if (btn.classList.contains(action === 'like' ? 'liked' : 'disliked')) {
-      btn.classList.remove('liked', 'disliked');
-      sessionRatings.liked = sessionRatings.liked.filter(n => n !== meal.name);
-      sessionRatings.disliked = sessionRatings.disliked.filter(n => n !== meal.name);
-      feedback.classList.remove('show');
-      return;
-    }
-
-    // Clear both buttons first
-    likeBtn.classList.remove('liked', 'disliked');
-    dislikeBtn.classList.remove('liked', 'disliked');
-    sessionRatings.liked = sessionRatings.liked.filter(n => n !== meal.name);
-    sessionRatings.disliked = sessionRatings.disliked.filter(n => n !== meal.name);
-
-    if (action === 'like') {
-      btn.classList.add('liked');
-      sessionRatings.liked.push(meal.name);
-      feedback.textContent = 'Great choice! We'll suggest more like this.';
-    } else {
-      btn.classList.add('disliked');
-      sessionRatings.disliked.push(meal.name);
-      feedback.textContent = 'Noted! We'll try something different next time.';
-    }
-    feedback.classList.add('show');
-  }
-
-  function buildRatingContext() {
-    let context = '';
-    if (sessionRatings.liked.length > 0) {
-      context += `\n\nThe user previously LIKED these meals — suggest similar styles: ${sessionRatings.liked.join(', ')}.`;
-    }
-    if (sessionRatings.disliked.length > 0) {
-      context += `\n\nThe user previously DISLIKED these meals — avoid similar styles: ${sessionRatings.disliked.join(', ')}.`;
-    }
-    return context;
-  }
-
   // ── Share feature ──
   let currentShareMeal = null;
   let mealsData = [];
