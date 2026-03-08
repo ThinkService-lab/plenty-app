@@ -976,7 +976,9 @@ Exactly 3 meals. Only use provided ingredients.${buildHealthInsightsInstruction(
       if (!response.ok) throw new Error(data.error?.message || 'API error');
 
       clearTimeout(slowTimer);
+      console.log('API response:', JSON.stringify(data).substring(0, 500));
       if (data.clean && data.parsed) {
+        console.log('parsed keys:', Object.keys(data.parsed));
         renderResults(data.parsed);
       } else {
         const text = data.content.map(b => b.text || '').join('');
@@ -1043,8 +1045,8 @@ Exactly 3 meals. Only use provided ingredients.${buildHealthInsightsInstruction(
               <div class="health-insight"><div class="insight-icon">${i.icon}</div><div class="insight-text">${i.text}</div></div>`).join('')}
             </div></div>` : '';
 
-      const ingsHtml = meal.ingredients_used.map(i => `<span class="ing-chip">${i}</span>`).join('');
-      const stepsHtml = meal.steps.map((step, i) =>
+      const ingsHtml = (meal.ingredients_used || []).map(i => `<span class="ing-chip">${i}</span>`).join('');
+      const stepsHtml = (meal.steps || []).map((step, i) =>
         `<div class="step"><div class="step-num">${i+1}</div><div>${step}</div></div>`).join('');
 
       card.innerHTML = `
@@ -1068,10 +1070,10 @@ Exactly 3 meals. Only use provided ingredients.${buildHealthInsightsInstruction(
           <div>
             <div class="meal-section-label">Nutrition (per serving)</div>
             <div class="nutrition-grid">
-              <div class="nutrition-item"><span>Calories</span><span>${meal.nutrition.calories}</span></div>
-              <div class="nutrition-item"><span>Protein</span><span>${meal.nutrition.protein}</span></div>
-              <div class="nutrition-item"><span>Carbs</span><span>${meal.nutrition.carbs}</span></div>
-              <div class="nutrition-item"><span>Fat</span><span>${meal.nutrition.fat}</span></div>
+              <div class="nutrition-item"><span>Calories</span><span>${meal.nutrition?.calories || "—"}</span></div>
+              <div class="nutrition-item"><span>Protein</span><span>${meal.nutrition?.protein || "—"}</span></div>
+              <div class="nutrition-item"><span>Carbs</span><span>${meal.nutrition?.carbs || "—"}</span></div>
+              <div class="nutrition-item"><span>Fat</span><span>${meal.nutrition?.fat || "—"}</span></div>
             </div>
           </div>
         </div>
