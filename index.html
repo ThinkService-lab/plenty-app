@@ -592,7 +592,7 @@ Generate exactly 3 meals. Use ONLY ingredients provided. Respect ALL health rule
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: 'claude-sonnet-4-5',
+          model: 'claude-sonnet-4-6',
           max_tokens: 2000,
           messages: [{ role: 'user', content: prompt }]
         })
