@@ -218,6 +218,41 @@
     backdrop-filter: blur(4px);
   }
 
+
+  /* Rating buttons */
+  .meal-rating {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #EDE8E0;
+  }
+  .meal-rating-label {
+    font-size: 12px;
+    color: var(--muted);
+    flex: 1;
+  }
+  .rating-btn {
+    background: var(--cream);
+    border: 1.5px solid #DDD5C8;
+    border-radius: 100px;
+    padding: 6px 14px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+    line-height: 1;
+  }
+  .rating-btn:hover { transform: scale(1.15); }
+  .rating-btn.liked { background: #E8F5E9; border-color: #81C784; }
+  .rating-btn.disliked { background: #FDE8E8; border-color: #E57373; }
+  .rating-feedback {
+    font-size: 12px;
+    color: var(--sage);
+    display: none;
+    font-style: italic;
+  }
+  .rating-feedback.show { display: block; }
   /* Share button & modal */
   .share-btn {
     width: 100%;
@@ -600,9 +635,59 @@
   function toggleCondition(id) {
     selectedConditions.has(id) ? selectedConditions.delete(id) : selectedConditions.add(id);
   
+
+  // ── Rating feature ──
+  function rateMeal(mealIdx, action, btn) {
+    const meal = mealsData[mealIdx];
+    if (!meal) return;
+
+    const card = btn.closest('.meal-card');
+    const likeBtn = card.querySelector('[data-action="like"]');
+    const dislikeBtn = card.querySelector('[data-action="dislike"]');
+    const feedback = card.querySelector('.rating-feedback');
+
+    // Toggle off if already rated same way
+    if (btn.classList.contains(action === 'like' ? 'liked' : 'disliked')) {
+      btn.classList.remove('liked', 'disliked');
+      sessionRatings.liked = sessionRatings.liked.filter(n => n !== meal.name);
+      sessionRatings.disliked = sessionRatings.disliked.filter(n => n !== meal.name);
+      feedback.classList.remove('show');
+      return;
+    }
+
+    // Clear both buttons first
+    likeBtn.classList.remove('liked', 'disliked');
+    dislikeBtn.classList.remove('liked', 'disliked');
+    sessionRatings.liked = sessionRatings.liked.filter(n => n !== meal.name);
+    sessionRatings.disliked = sessionRatings.disliked.filter(n => n !== meal.name);
+
+    if (action === 'like') {
+      btn.classList.add('liked');
+      sessionRatings.liked.push(meal.name);
+      feedback.textContent = 'Great choice! We'll suggest more like this.';
+    } else {
+      btn.classList.add('disliked');
+      sessionRatings.disliked.push(meal.name);
+      feedback.textContent = 'Noted! We'll try something different next time.';
+    }
+    feedback.classList.add('show');
+  }
+
+  function buildRatingContext() {
+    let context = '';
+    if (sessionRatings.liked.length > 0) {
+      context += `\n\nThe user previously LIKED these meals — suggest similar styles: ${sessionRatings.liked.join(', ')}.`;
+    }
+    if (sessionRatings.disliked.length > 0) {
+      context += `\n\nThe user previously DISLIKED these meals — avoid similar styles: ${sessionRatings.disliked.join(', ')}.`;
+    }
+    return context;
+  }
+
   // ── Share feature ──
   let currentShareMeal = null;
   let mealsData = [];
+  let sessionRatings = { liked: [], disliked: [] };
   let currentShareImageUrl = null;
 
   const SHARE_GRADIENTS = [
@@ -853,7 +938,7 @@ Return ONLY valid JSON, no markdown:
   }
 }
 
-Rules: exactly 3 meals, ONLY use provided ingredients, respect health rules, never say limited/few/only.`;
+Rules: exactly 3 meals, ONLY use provided ingredients, respect health rules, never say limited/few/only.${buildRatingContext()}`;
 
     try {
       const response = await fetch('/api/meals', {
@@ -957,12 +1042,24 @@ Rules: exactly 3 meals, ONLY use provided ingredients, respect health rules, nev
         </div>
         <button class="steps-toggle" onclick="toggleSteps(this)">📋 Show cooking steps</button>
         <div class="steps-content">${stepsHtml}</div>
+        <div class="meal-rating">
+          <span class="meal-rating-label">How does this look?</span>
+          <button class="rating-btn" data-mealindex="${mealIndex}" data-action="like">👍</button>
+          <button class="rating-btn" data-mealindex="${mealIndex}" data-action="dislike">👎</button>
+          <span class="rating-feedback" id="ratingFeedback${mealIndex}">Got it!</span>
+        </div>
         <button class="share-btn" data-mealindex="${mealIndex}">📤 Share this meal</button>`;
       container.appendChild(card);
       // Attach share button listener safely after card is in DOM
       const shareBtn = card.querySelector('.share-btn');
       shareBtn.addEventListener('click', function() {
         shareMeal(this, parseInt(this.dataset.mealindex));
+      });
+      // Attach rating button listeners
+      card.querySelectorAll('.rating-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          rateMeal(parseInt(this.dataset.mealindex), this.dataset.action, this);
+        });
       });
     });
 
@@ -1040,9 +1137,59 @@ Rules: exactly 3 meals, ONLY use provided ingredients, respect health rules, nev
   }
 
 
+
+  // ── Rating feature ──
+  function rateMeal(mealIdx, action, btn) {
+    const meal = mealsData[mealIdx];
+    if (!meal) return;
+
+    const card = btn.closest('.meal-card');
+    const likeBtn = card.querySelector('[data-action="like"]');
+    const dislikeBtn = card.querySelector('[data-action="dislike"]');
+    const feedback = card.querySelector('.rating-feedback');
+
+    // Toggle off if already rated same way
+    if (btn.classList.contains(action === 'like' ? 'liked' : 'disliked')) {
+      btn.classList.remove('liked', 'disliked');
+      sessionRatings.liked = sessionRatings.liked.filter(n => n !== meal.name);
+      sessionRatings.disliked = sessionRatings.disliked.filter(n => n !== meal.name);
+      feedback.classList.remove('show');
+      return;
+    }
+
+    // Clear both buttons first
+    likeBtn.classList.remove('liked', 'disliked');
+    dislikeBtn.classList.remove('liked', 'disliked');
+    sessionRatings.liked = sessionRatings.liked.filter(n => n !== meal.name);
+    sessionRatings.disliked = sessionRatings.disliked.filter(n => n !== meal.name);
+
+    if (action === 'like') {
+      btn.classList.add('liked');
+      sessionRatings.liked.push(meal.name);
+      feedback.textContent = 'Great choice! We'll suggest more like this.';
+    } else {
+      btn.classList.add('disliked');
+      sessionRatings.disliked.push(meal.name);
+      feedback.textContent = 'Noted! We'll try something different next time.';
+    }
+    feedback.classList.add('show');
+  }
+
+  function buildRatingContext() {
+    let context = '';
+    if (sessionRatings.liked.length > 0) {
+      context += `\n\nThe user previously LIKED these meals — suggest similar styles: ${sessionRatings.liked.join(', ')}.`;
+    }
+    if (sessionRatings.disliked.length > 0) {
+      context += `\n\nThe user previously DISLIKED these meals — avoid similar styles: ${sessionRatings.disliked.join(', ')}.`;
+    }
+    return context;
+  }
+
   // ── Share feature ──
   let currentShareMeal = null;
   let mealsData = [];
+  let sessionRatings = { liked: [], disliked: [] };
   let currentShareImageUrl = null;
 
   const SHARE_GRADIENTS = [
