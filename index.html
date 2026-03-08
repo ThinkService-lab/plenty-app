@@ -469,20 +469,14 @@
     const rules = [...selectedConditions].map(id => {
       const c = CONDITIONS.find(x => x.id === id);
       return `- ${c.name}: ${c.rules}`;
-    }).join('
-');
-    return `
-
-CRITICAL HEALTH REQUIREMENTS:
-${rules}`;
+    }).join('\n');
+    return '\n\nCRITICAL HEALTH REQUIREMENTS:\n' + rules;
   }
 
   function buildHealthInsightsInstruction() {
     if (selectedConditions.size === 0) return '';
     const condNames = [...selectedConditions].map(id => CONDITIONS.find(x => x.id === id).name).join(', ');
-    return `
-
-For each meal include "health_insights": array of 2-3 objects like { "icon": "🫒", "text": "<b>Olive oil</b> helps lower LDL cholesterol." } explaining why ingredients benefit the user (${condNames}).`;
+    return '\n\nFor each meal include health_insights: array of 2-3 objects { icon: emoji, text: explanation } for why ingredients benefit (' + condNames + ').';
   }
 
   // ── Generate meals ──
