@@ -9,13 +9,14 @@ Plenty takes whatever ingredients you have and suggests 3 complete meals you can
 ## Repo structure
 ```
 /
-├── index.html          ← entire frontend (single file)
-├── vercel.json         ← Vercel routing + function config
-├── README.md           ← this file
+├── index.html                ← entire frontend (single file)
+├── vercel.json               ← Vercel routing + function config
+├── google-apps-script.js     ← Google Apps Script (email + feedback → Sheets)
+├── README.md                 ← this file
 └── api/
-    ├── meals.js        ← Anthropic API proxy (main AI route)
-    ├── subscribe.js    ← email capture → Google Sheets
-    └── photo.js        ← unused (gradient placeholders used instead)
+    ├── meals.js              ← Anthropic API proxy (main AI route)
+    ├── subscribe.js          ← email capture → Google Sheets
+    └── photo.js              ← unused (gradient placeholders used instead)
 ```
 
 ---
@@ -26,7 +27,7 @@ Plenty takes whatever ingredients you have and suggests 3 complete meals you can
 | Frontend | Vanilla HTML/CSS/JS (single file) |
 | Backend | Vercel serverless functions |
 | AI | Claude Haiku (`claude-haiku-4-5-20251001`) |
-| Email capture | Google Apps Script → Google Sheet |
+| Feedback & email capture | Google Apps Script → Google Sheet |
 | Hosting | Vercel (free tier, auto-deploy from GitHub) |
 
 ---
@@ -40,7 +41,14 @@ Plenty takes whatever ingredients you have and suggests 3 complete meals you can
 
 ---
 
-## Features (baseline v1)
+## Google Sheet structure
+Two tabs auto-created by the Apps Script:
+- **Subscribers** — Timestamp, Email, Source
+- **Feedback** — Timestamp, Vote (yes/no), Message, Email, Source
+
+---
+
+## Features (current baseline — v2)
 - **Ingredient input** — type naturally ("2 eggs", "500g chicken", "rice") or use quick-add staple buttons
 - **Diet & skill profile** — diet preference, cooking skill level, servings
 - **Health conditions** — 8 selectable conditions (Diabetes, High Cholesterol, High Blood Pressure, Heart Disease, Kidney Disease, IBS, Weight Management, Anaemia) with tailored meal rules and "Why this is good for you" insights
@@ -48,17 +56,21 @@ Plenty takes whatever ingredients you have and suggests 3 complete meals you can
 - **Gradient meal headers** — 3 rotating visual styles (terracotta, sage, earth) with emoji + time/difficulty badges
 - **Stretch meal** — one extra cheap ingredient that unlocks a 4th meal idea
 - **Rate a meal** — 👍 / 👎 per meal; ratings influence next generation
-- **Share a meal** — WhatsApp, Facebook, download image (html2canvas), copy text
-- **Email capture** — post-results signup card → Google Sheet
+- **Share a meal** — WhatsApp, Facebook, download image (html2canvas), copy text; share image includes Plenty branding and URL
+- **Share Plenty nudge** — WhatsApp card at bottom of results to share the app with friends
+- **Feedback card** — 👍 / 👎 after results with optional text box; if user hasn't subscribed, email prompt appears inline; all saved to Google Sheet Feedback tab
+- **Email capture** — separate signup card → Google Sheet Subscribers tab; duplicate-safe
 
 ---
 
 ## Known architecture decisions
 - **No Unsplash/Pexels photos** — gradient placeholders used instead (real food APIs returned irrelevant images for African/diverse dishes)
-- **All onclick handlers exposed as `window.X`** — required because functions are defined inside a script block, not globally
+- **All onclick handlers exposed as `window.X`** — required because functions are defined inside a script block, not globally. Always add `window.X =` for any new function called via onclick
 - **meals.js cleans control characters with charCodeAt()** — regex with literal newlines in the file was corrupting Vercel compilation silently
 - **claude-haiku not claude-sonnet** — faster, cheaper, avoids timeout on Vercel free tier
-- **max_tokens: 1200** — keeps response fast and within haiku limits
+- **max_tokens: 1800** — increased from 1200 to handle health condition prompts without truncation; passed from frontend so meals.js stays flexible
+- **Feedback goes direct to Sheets URL** — no Vercel function needed, frontend calls Google Apps Script directly with query params
+- **Validation rule** — after every edit, run the validator: braces balanced, backticks even, all onclick functions on window.*, node --check passes
 
 ---
 
@@ -72,6 +84,7 @@ Plenty takes whatever ingredients you have and suggests 3 complete meals you can
 ## Roadmap
 ### Next (Round 1 — get paying users)
 - [ ] Free vs paid usage limit (3 meals/day free → $4.99–7.99/month)
+- [ ] First TikTok/Instagram content video
 
 ### Round 2 — wow factor
 - [ ] Fridge photo scan
