@@ -11,11 +11,11 @@ export default async function handler(req, res) {
 
   try {
     const response = await fetch(
-      `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&per_page=1&orientation=landscape`,
-      { headers: { Authorization: `Client-ID ${process.env.UNSPLASH_KEY}` } }
+      `https://api.pexels.com/v1/search?query=${encodeURIComponent(query)}&per_page=1&orientation=landscape`,
+      { headers: { Authorization: process.env.PEXELS_KEY } }
     );
     const data = await response.json();
-    const url = data.results?.[0]?.urls?.regular || null;
+    const url = data.photos?.[0]?.src?.large || null;
     return res.status(200).json({ url });
   } catch (err) {
     return res.status(500).json({ url: null, error: err.message });
