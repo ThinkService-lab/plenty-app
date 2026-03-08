@@ -825,7 +825,7 @@ https://plenty-app-nine.vercel.app`;
     updateBtn();
   }
 
-  function quickAdd(name, qty) {
+  window.quickAdd = function quickAdd(name, qty) {
     if (!ingredients.find(i => i.name === name)) {
       ingredients.push({ name, qty });
       renderTags();
@@ -833,7 +833,7 @@ https://plenty-app-nine.vercel.app`;
     }
   }
 
-  function removeIngredient(name) {
+  window.removeIngredient = function removeIngredient(name) {
     ingredients = ingredients.filter(i => i.name !== name);
     renderTags();
     updateBtn();
@@ -1083,7 +1083,7 @@ Exactly 3 meals. Only use provided ingredients.${buildHealthInsightsInstruction(
     document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
-  function toggleSteps(btn) {
+  window.toggleSteps = function toggleSteps(btn) {
     const content = btn.nextElementSibling;
     content.classList.toggle('open');
     btn.textContent = content.classList.contains('open') ? '📋 Hide cooking steps' : '📋 Show cooking steps';
