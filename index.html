@@ -575,9 +575,9 @@ Rules: exactly 3 meals, ONLY use provided ingredients, respect health rules, nev
 
   async function fetchMealPhoto(mealName, ingredients) {
     try {
-      // Use meal name + top 3 ingredients for a more accurate photo search
-      const topIngs = (ingredients || []).slice(0, 3).join(' ');
-      const query = mealName + ' ' + topIngs + ' food dish';
+      // Search by meal name first for best accuracy
+      // Add "cooked plated bowl" to avoid raw ingredient photos
+      const query = mealName + ' cooked plated bowl food photography';
       const res = await fetch(`/api/photo?query=${encodeURIComponent(query)}`);
       const data = await res.json();
       return data.url || null;
