@@ -337,17 +337,8 @@
     </div>
     <div id="mealsContainer"></div>
     <div id="stretchCard"></div>
-    <div class="email-signup-card" id="emailSignupCard">
-      <h3>🌿 Want a week of meal ideas?</h3>
-      <p>Join people eating well on a budget.<br>Get new ideas and features straight to your inbox.</p>
-      <div class="email-row">
-        <input type="email" class="email-field" id="emailField" placeholder="your@email.com" />
-        <button class="email-submit-btn" id="emailJoinBtn" onclick="submitEmail()">Join free</button>
-      </div>
-      <div class="email-success" id="emailSuccess">✨ You're in! Welcome to Plenty.</div>
-      <div class="email-error" id="emailError">Something went wrong — please try again.</div>
-    </div>
-        <button class="try-again-btn" onclick="resetApp()">← Try different ingredients</button>
+    <div id="emailSignupCard"></div>
+    <button class="try-again-btn" onclick="resetApp()">← Try different ingredients</button>
   </div>
 
 </div>
@@ -383,7 +374,7 @@
   
   const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwd-xuLj8t3mQABSLZ8m5pe9arxOKr6qRkTLkbDnyS-0UCuhqia-fFRC8FgZLKeV25a/exec';
 
-  window.submitEmail = async function() {
+  async function submitEmail() {
     const emailField = document.getElementById('emailField');
     const btn = document.getElementById('emailJoinBtn');
     const success = document.getElementById('emailSuccess');
@@ -683,6 +674,23 @@ Rules: exactly 3 meals, ONLY use provided ingredients, respect health rules, nev
           <div class="stretch-item">🛒 Just add: ${s.one_extra_item}</div>
         </div>`;
     }
+
+    // Render email signup card dynamically so onclick works
+    document.getElementById('emailSignupCard').innerHTML = `
+      <div class="email-signup-card">
+        <h3>🌿 Want a week of meal ideas?</h3>
+        <p>Join people eating well on a budget.<br>Get new ideas and features straight to your inbox.</p>
+        <div class="email-row">
+          <input type="email" class="email-field" id="emailField" placeholder="your@email.com" />
+          <button class="email-submit-btn" id="emailJoinBtn">Join free</button>
+        </div>
+        <div class="email-success" id="emailSuccess">✨ You're in! Welcome to Plenty.</div>
+        <div class="email-error" id="emailError">Something went wrong — please try again.</div>
+      </div>`;
+    document.getElementById('emailJoinBtn').addEventListener('click', submitEmail);
+    document.getElementById('emailField').addEventListener('keydown', e => {
+      if (e.key === 'Enter') submitEmail();
+    });
 
     document.getElementById('resultsSection').classList.add('active');
     document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
