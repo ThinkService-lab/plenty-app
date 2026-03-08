@@ -401,17 +401,19 @@
     error.classList.remove('show');
 
     try {
-      // Use a hidden image trick to send to Google Apps Script
-      // This bypasses CORS entirely — the request still goes through
-      const params = new URLSearchParams({ email, source: 'Plenty App' });
-      await fetch(SHEETS_URL + '?' + params.toString(), {
-        method: 'GET',
-        mode: 'no-cors'
+      const res = await fetch('/api/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, source: 'Plenty App' })
       });
-      // Show success immediately — no-cors won't give us a response but request goes through
-      emailField.style.display = 'none';
-      btn.style.display = 'none';
-      success.classList.add('show');
+      const result = await res.json();
+      if (result.success) {
+        emailField.style.display = 'none';
+        btn.style.display = 'none';
+        success.classList.add('show');
+      } else {
+        throw new Error(result.error || 'Failed');
+      }
     } catch (err) {
       btn.disabled = false;
       btn.textContent = 'Join free';
