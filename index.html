@@ -600,18 +600,20 @@ Generate exactly 3 meals. Use ONLY ingredients provided. Respect ALL health rule
       const data = await response.json();
       if (!response.ok) throw new Error(data.error?.message || JSON.stringify(data));
       if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
-      const text = data.content.map(b => b.text || '').join('');
-      // Robustly extract and clean JSON
-      const jsonStart = text.indexOf('{');
-      const jsonEnd = text.lastIndexOf('}');
-      if (jsonStart === -1 || jsonEnd === -1) throw new Error('No valid response received. Please try again.');
-      let jsonStr = text.substring(jsonStart, jsonEnd + 1);
-      // Remove control characters that break JSON parsing
-      jsonStr = jsonStr.replace(/[\u0000-\u001F\u007F]/g, m => {
-        if (m === '\n' || m === '\r' || m === '\t') return ' ';
-        return '';
-      });
-      renderResults(JSON.parse(jsonStr));
+      // Backend now pre-parses the JSON for us
+      if (data.clean && data.parsed) {
+        renderResults(data.parsed);
+      } else if (data.raw) {
+        // Fallback: try parsing the raw string client-side
+        renderResults(JSON.parse(data.raw));
+      } else {
+        // Legacy fallback for plain Anthropic response
+        const text = data.content.map(b => b.text || '').join('');
+        const jsonStart = text.indexOf('{');
+        const jsonEnd = text.lastIndexOf('}');
+        if (jsonStart === -1 || jsonEnd === -1) throw new Error('No valid response. Please try again.');
+        renderResults(JSON.parse(text.substring(jsonStart, jsonEnd + 1)));
+      }
     } catch (err) {
       document.getElementById('loadingState').classList.remove('active');
       document.getElementById('errorState').classList.add('active');
