@@ -673,17 +673,6 @@
     feedback.classList.add('show');
   }
 
-  function buildRatingContext() {
-    let context = '';
-    if (sessionRatings.liked.length > 0) {
-      context += `\n\nThe user previously LIKED these meals — suggest similar styles: ${sessionRatings.liked.join(', ')}.`;
-    }
-    if (sessionRatings.disliked.length > 0) {
-      context += `\n\nThe user previously DISLIKED these meals — avoid similar styles: ${sessionRatings.disliked.join(', ')}.`;
-    }
-    return context;
-  }
-
   // ── Share feature ──
   let currentShareMeal = null;
   let mealsData = [];
@@ -793,8 +782,7 @@ https://plenty-app-nine.vercel.app`;
   document.getElementById('generateBtn').addEventListener('click', window.generateMeals);
 
   renderHealthGrid();
-    updateHealthSummary();
-  }
+  updateHealthSummary();
 
   function updateHealthSummary() {
     const count = selectedConditions.size;
@@ -896,6 +884,17 @@ https://plenty-app-nine.vercel.app`;
     if (selectedConditions.size === 0) return '';
     const condNames = [...selectedConditions].map(id => CONDITIONS.find(x => x.id === id).name).join(', ');
     return '\n\nFor each meal include health_insights: array of 2-3 objects { icon: emoji, text: explanation } for why ingredients benefit (' + condNames + ').';
+  }
+
+  function buildRatingContext() {
+    let context = '';
+    if (sessionRatings.liked.length > 0) {
+      context += `\n\nThe user previously LIKED these meals — suggest similar styles: ${sessionRatings.liked.join(', ')}.`;
+    }
+    if (sessionRatings.disliked.length > 0) {
+      context += `\n\nThe user previously DISLIKED these meals — avoid similar styles: ${sessionRatings.disliked.join(', ')}.`;
+    }
+    return context;
   }
 
   // ── Generate meals ──
@@ -1126,110 +1125,6 @@ Exactly 3 meals. Only use provided ingredients.${buildHealthInsightsInstruction(
   }
 
 
-  // ── Share feature ──
-  let currentShareMeal = null;
-  let mealsData = [];
-  let sessionRatings = { liked: [], disliked: [] };
-  let currentShareImageUrl = null;
-
-  const SHARE_GRADIENTS = [
-    'linear-gradient(135deg, #C4622D 0%, #E8835A 50%, #D4A847 100%)',
-    'linear-gradient(135deg, #5A7A4E 0%, #7A8C6E 50%, #A8C49A 100%)',
-    'linear-gradient(135deg, #3D2B1F 0%, #6B4A35 50%, #C4622D 100%)'
-  ];
-
-  window.shareMeal = async function(btn, mealIdx) {
-    const meal = mealsData[mealIdx];
-    currentShareMeal = meal;
-    currentShareImageUrl = null;
-
-    // Show modal
-    document.getElementById('shareModalOverlay').classList.add('active');
-    document.getElementById('sharePreviewLoading').style.display = 'flex';
-    document.getElementById('sharePreviewImg').style.display = 'none';
-
-    // Build the capture card
-    const cardIndex = [...document.querySelectorAll('.share-btn')].indexOf(btn) % 3;
-    const gradient = SHARE_GRADIENTS[cardIndex];
-    const emojis = ['🍲','🥘','🍛','🥗','🍜','🫕'];
-    const emoji = emojis[Math.floor(Math.random() * emojis.length)];
-
-    const stepsHtml = (meal.steps || []).map((step, i) =>
-      `<div class="share-card-step"><div class="share-card-step-num">${i+1}</div><div>${step}</div></div>`
-    ).join('');
-
-    const ingsHtml = (meal.ingredients_used || []).map(i =>
-      `<span class="share-card-ing">${i}</span>`
-    ).join('');
-
-    document.getElementById('shareCardCapture').innerHTML = `
-      <div class="share-card-header" style="background: ${gradient}">
-        <div class="share-card-emoji">${emoji}</div>
-        <div class="share-card-name">${meal.name}</div>
-        <div class="share-card-meta">⏱ ${meal.time_minutes} min · ${meal.difficulty}</div>
-      </div>
-      <p class="share-card-affirmation">"${meal.affirmation}"</p>
-      <div class="share-card-section">Ingredients</div>
-      <div class="share-card-ings">${ingsHtml}</div>
-      <div class="share-card-section">Steps</div>
-      <div class="share-card-steps">${stepsHtml}</div>
-      <div class="share-card-footer">Made with <strong>Plenty</strong> — you have more than you think 🌿</div>`;
-
-    // Capture as image
-    try {
-      const canvas = await html2canvas(document.getElementById('shareCardCapture'), {
-        scale: 2, backgroundColor: '#ffffff', useCORS: true
-      });
-      currentShareImageUrl = canvas.toDataURL('image/png');
-      document.getElementById('sharePreviewImg').src = currentShareImageUrl;
-      document.getElementById('sharePreviewImg').style.display = 'block';
-      document.getElementById('sharePreviewLoading').style.display = 'none';
-    } catch(e) {
-      document.getElementById('sharePreviewLoading').textContent = 'Preview unavailable — use Download';
-    }
-
-    // Set up share links
-    const text = `🌿 Check out this meal I can make tonight with Plenty!
-
-*${meal.name}*
-${meal.affirmation}
-
-Ingredients: ${(meal.ingredients_used||[]).join(', ')}
-
-https://plenty-app-nine.vercel.app`;
-    const encodedText = encodeURIComponent(text);
-    document.getElementById('shareWhatsapp').href = `https://wa.me/?text=${encodedText}`;
-    document.getElementById('shareFacebook').href = `https://www.facebook.com/sharer/sharer.php?u=https://plenty-app-nine.vercel.app&quote=${encodedText}`;
-  }
-
-  function downloadShareImage() {
-    if (!currentShareImageUrl) return;
-    const a = document.createElement('a');
-    a.href = currentShareImageUrl;
-    a.download = (currentShareMeal?.name || 'meal').replace(/\s+/g, '-') + '-plenty.png';
-    a.click();
-  }
-
-  function copyShareText() {
-    if (!currentShareMeal) return;
-    const text = `🌿 ${currentShareMeal.name}
-${currentShareMeal.affirmation}
-
-Ingredients: ${(currentShareMeal.ingredients_used||[]).join(', ')}
-
-Made with Plenty 🌿
-
-https://plenty-app-nine.vercel.app`;
-    navigator.clipboard.writeText(text).then(() => {
-      document.getElementById('shareCopy').textContent = '✓ Copied!';
-      setTimeout(() => document.getElementById('shareCopy').textContent = '📋 Copy text', 2000);
-    });
-  }
-
-  function closeShareModal(e) {
-    if (e && e.target !== document.getElementById('shareModalOverlay')) return;
-    document.getElementById('shareModalOverlay').classList.remove('active');
-  }
 
   // Attach generate button listener
   document.getElementById('generateBtn').addEventListener('click', window.generateMeals);
