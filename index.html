@@ -573,9 +573,12 @@ Rules: exactly 3 meals, ONLY use provided ingredients, respect health rules, nev
   }
 
 
-  async function fetchMealPhoto(mealName) {
+  async function fetchMealPhoto(mealName, ingredients) {
     try {
-      const res = await fetch(`/api/photo?query=${encodeURIComponent(mealName + ' food dish')}`);
+      // Use meal name + top 3 ingredients for a more accurate photo search
+      const topIngs = (ingredients || []).slice(0, 3).join(' ');
+      const query = mealName + ' ' + topIngs + ' food dish';
+      const res = await fetch(`/api/photo?query=${encodeURIComponent(query)}`);
       const data = await res.json();
       return data.url || null;
     } catch (e) {}
@@ -599,7 +602,7 @@ Rules: exactly 3 meals, ONLY use provided ingredients, respect health rules, nev
       const card = document.createElement('div');
       card.className = 'meal-card';
       // Fetch photo for this meal
-      const photoUrl = await fetchMealPhoto(meal.name);
+      const photoUrl = await fetchMealPhoto(meal.name, meal.ingredients_used);
       const photoHtml = photoUrl
         ? `<img class="meal-photo" src="${photoUrl}" alt="${meal.name}" loading="lazy" />`
         : `<div class="meal-photo-placeholder">🍽️</div>`;
