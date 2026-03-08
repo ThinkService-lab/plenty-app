@@ -26,7 +26,6 @@
   .logo-text { font-family: 'Playfair Display', serif; font-size: 28px; color: var(--earth); letter-spacing: -0.5px; }
   .tagline { font-family: 'Playfair Display', serif; font-style: italic; font-size: 17px; color: var(--muted); margin-bottom: 8px; }
 
-  /* Profile strip */
   .profile-strip { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin: 24px 0 16px; }
   .pill-select { appearance: none; background: var(--warm-white); border: 1.5px solid #DDD5C8; border-radius: 100px; padding: 8px 16px; font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--earth); cursor: pointer; transition: all 0.2s; outline: none; }
   .pill-select:hover, .pill-select:focus { border-color: var(--terracotta); background: white; }
@@ -79,12 +78,10 @@
   .quick-pill { background: transparent; border: 1px dashed #C5BDB2; border-radius: 100px; padding: 4px 12px; font-size: 12px; color: var(--muted); cursor: pointer; transition: all 0.15s; font-family: 'DM Sans', sans-serif; }
   .quick-pill:hover { background: var(--light-sage); border-color: var(--sage); color: var(--earth); }
 
-  /* Generate button */
   .generate-btn { width: 100%; background: var(--earth); color: var(--cream); border: none; border-radius: 16px; padding: 18px 32px; font-family: 'Playfair Display', serif; font-size: 18px; cursor: pointer; transition: all 0.25s; margin-bottom: 36px; display: flex; align-items: center; justify-content: center; gap: 10px; letter-spacing: -0.3px; }
   .generate-btn:hover:not(:disabled) { background: var(--terracotta); transform: translateY(-2px); box-shadow: 0 8px 32px rgba(196,98,45,0.3); }
   .generate-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-  /* Loading */
   .loading-state { text-align: center; padding: 48px 0; display: none; }
   .loading-state.active { display: block; }
   .loading-spinner { width: 48px; height: 48px; border: 3px solid var(--light-sage); border-top-color: var(--terracotta); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 20px; }
@@ -92,7 +89,6 @@
   .loading-text { font-family: 'Playfair Display', serif; font-style: italic; font-size: 18px; color: var(--muted); }
   .loading-subtext { font-size: 13px; color: #BFB8AE; margin-top: 6px; }
 
-  /* Results */
   .results-section { display: none; }
   .results-section.active { display: block; }
   .results-header { text-align: center; margin-bottom: 28px; }
@@ -116,6 +112,62 @@
   .health-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 100px; font-size: 11px; font-weight: 500; background: #FDE8E8; color: #8B2020; border: 1px solid #F5C6C6; }
   .meal-affirmation { font-style: italic; color: var(--terracotta); font-size: 14px; margin-bottom: 12px; font-family: 'Playfair Display', serif; }
   .meal-description { font-size: 14px; color: #6B5E52; line-height: 1.7; margin-bottom: 16px; }
+
+  /* ── NEW: Health explanation panel ── */
+  .health-explanation {
+    background: linear-gradient(135deg, #F0F7EE 0%, #EAF2E8 100%);
+    border: 1.5px solid #C5D9BF;
+    border-radius: 14px;
+    padding: 16px 18px;
+    margin-bottom: 16px;
+  }
+  .health-explanation-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .health-explanation-title {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--sage);
+  }
+  .health-insight-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .health-insight {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .insight-icon {
+    width: 26px;
+    height: 26px;
+    background: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    flex-shrink: 0;
+    border: 1px solid #C5D9BF;
+    margin-top: 1px;
+  }
+  .insight-text {
+    font-size: 13px;
+    color: #4A6B42;
+    line-height: 1.55;
+  }
+  .insight-text strong {
+    color: #2E4A28;
+    font-weight: 600;
+  }
+  /* ── end health explanation ── */
+
   .meal-sections { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
   @media (max-width: 560px) { .meal-sections { grid-template-columns: 1fr; } }
   .meal-section-label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 8px; }
@@ -132,7 +184,6 @@
   .step { display: flex; gap: 12px; margin-bottom: 10px; font-size: 14px; color: #6B5E52; line-height: 1.6; }
   .step-num { width: 22px; height: 22px; background: var(--terracotta); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; flex-shrink: 0; margin-top: 2px; }
 
-  /* Stretch card */
   .stretch-card { background: linear-gradient(135deg, #FEF3E2 0%, #FDF8F0 100%); border: 1.5px solid #EDD9B0; border-radius: 20px; padding: 24px; margin-top: 8px; margin-bottom: 24px; animation: cardSlide 0.4s 0.4s cubic-bezier(0.22,1,0.36,1) both; }
   .stretch-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
   .stretch-label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 1px; color: var(--gold); }
@@ -140,18 +191,15 @@
   .stretch-desc { font-size: 13px; color: #8A7040; line-height: 1.6; }
   .stretch-item { display: inline-flex; align-items: center; gap: 6px; background: white; border: 1px solid #EDD9B0; border-radius: 100px; padding: 4px 12px; font-size: 13px; color: var(--earth); margin-top: 10px; font-weight: 500; }
 
-  /* Confidence banner */
   .confidence-banner { background: var(--earth); color: var(--cream); border-radius: 16px; padding: 20px 24px; text-align: center; margin-bottom: 24px; animation: cardSlide 0.4s 0.5s cubic-bezier(0.22,1,0.36,1) both; }
   .confidence-banner .big-num { font-family: 'Playfair Display', serif; font-size: 42px; color: var(--gold); line-height: 1; margin-bottom: 4px; }
   .confidence-banner p { font-size: 14px; opacity: 0.8; }
 
   .try-again-btn { width: 100%; background: transparent; border: 1.5px solid #DDD5C8; border-radius: 12px; padding: 14px; font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--muted); cursor: pointer; transition: all 0.2s; margin-bottom: 48px; }
   .try-again-btn:hover { border-color: var(--terracotta); color: var(--terracotta); }
-
   .error-state { background: #FDE8E8; border: 1.5px solid #F5C6C6; border-radius: 16px; padding: 20px 24px; text-align: center; margin-bottom: 24px; display: none; }
   .error-state.active { display: block; }
   .error-state p { color: #C43D3D; font-size: 14px; }
-
   footer { text-align: center; padding: 24px 0 48px; font-size: 12px; color: #C5BDB2; }
 </style>
 </head>
@@ -166,7 +214,6 @@
     <p class="tagline">You already have everything you need to eat well tonight.</p>
   </header>
 
-  <!-- Basic preferences -->
   <div class="profile-strip">
     <select class="pill-select" id="dietPref">
       <option value="none">🍽️ No restrictions</option>
@@ -189,7 +236,6 @@
     </select>
   </div>
 
-  <!-- Health Conditions -->
   <div class="health-card">
     <div class="health-header" onclick="toggleHealthPanel()">
       <div class="health-header-left">
@@ -199,10 +245,8 @@
       <span class="health-toggle-arrow" id="healthArrow">▼</span>
     </div>
     <div class="health-body" id="healthBody">
-      <p class="health-subtitle">Select any conditions and the AI will tailor every meal suggestion specifically for your health needs.</p>
-      <div class="health-grid" id="healthGrid">
-        <!-- Rendered by JS -->
-      </div>
+      <p class="health-subtitle">Select any conditions and the AI will tailor every meal — and explain exactly why each ingredient is good for you.</p>
+      <div class="health-grid" id="healthGrid"></div>
       <div class="health-disclaimer">
         <strong>Medical notice:</strong> Plenty provides general nutritional guidance only. Always consult your doctor or registered dietitian before making dietary changes for a medical condition.
       </div>
@@ -210,7 +254,6 @@
     </div>
   </div>
 
-  <!-- Ingredient input -->
   <div class="input-card">
     <span class="input-label">What's in your kitchen right now?</span>
     <div class="ingredient-input-row">
@@ -265,47 +308,34 @@
   </div>
 
 </div>
-
 <footer>Plenty — because you have more than you think 🌿</footer>
 
 <script>
-  // ── Health conditions data ──────────────────────────────
   const CONDITIONS = [
-    { id: 'diabetes',       emoji: '🩸', name: 'Diabetes / Pre-diabetes',  desc: 'Low glycemic, controlled carbs',       rules: 'low glycemic index foods, controlled carbohydrates, no added sugar, high fibre' },
-    { id: 'cholesterol',    emoji: '💛', name: 'High Cholesterol',          desc: 'Low saturated fat, high fibre',         rules: 'low saturated fat, no trans fats, high soluble fibre, heart-healthy unsaturated fats' },
-    { id: 'hypertension',   emoji: '💙', name: 'High Blood Pressure',       desc: 'Low sodium, potassium-rich',            rules: 'very low sodium (no added salt), potassium-rich foods, DASH diet principles' },
-    { id: 'heart',          emoji: '❤️', name: 'Heart Disease',             desc: 'Heart-healthy fats, low sodium',        rules: 'heart-healthy omega-3 fats, low sodium, low saturated fat, high fibre, no processed foods' },
-    { id: 'kidney',         emoji: '🫘', name: 'Kidney Disease',            desc: 'Low potassium & phosphorus',            rules: 'low potassium, low phosphorus, controlled protein intake, low sodium' },
-    { id: 'ibs',            emoji: '🌿', name: 'IBS / Digestive Issues',    desc: 'Low FODMAP, gentle ingredients',        rules: 'low FODMAP ingredients, avoid onion/garlic in large quantities, easily digestible foods, no high-gas foods' },
-    { id: 'obesity',        emoji: '⚖️', name: 'Weight Management',         desc: 'Calorie controlled, high satiety',      rules: 'calorie controlled meals, high protein and fibre for satiety, low energy density, minimal added fats' },
-    { id: 'anaemia',        emoji: '🔴', name: 'Anaemia / Low Iron',        desc: 'Iron-rich, vitamin C pairing',          rules: 'iron-rich ingredients, pair with vitamin C to boost absorption, avoid calcium with iron-rich foods' },
+    { id: 'diabetes',     emoji: '🩸', name: 'Diabetes / Pre-diabetes', desc: 'Low glycemic, controlled carbs',  rules: 'low glycemic index foods, controlled carbohydrates, no added sugar, high fibre' },
+    { id: 'cholesterol',  emoji: '💛', name: 'High Cholesterol',         desc: 'Low saturated fat, high fibre',  rules: 'low saturated fat, no trans fats, high soluble fibre, heart-healthy unsaturated fats like olive oil' },
+    { id: 'hypertension', emoji: '💙', name: 'High Blood Pressure',      desc: 'Low sodium, potassium-rich',     rules: 'very low sodium (no added salt), potassium-rich foods, DASH diet principles' },
+    { id: 'heart',        emoji: '❤️', name: 'Heart Disease',            desc: 'Heart-healthy fats, low sodium', rules: 'heart-healthy omega-3 fats, low sodium, low saturated fat, high fibre, no processed foods' },
+    { id: 'kidney',       emoji: '🫘', name: 'Kidney Disease',           desc: 'Low potassium & phosphorus',     rules: 'low potassium, low phosphorus, controlled protein intake, low sodium' },
+    { id: 'ibs',          emoji: '🌿', name: 'IBS / Digestive Issues',   desc: 'Low FODMAP, gentle ingredients', rules: 'low FODMAP ingredients, easily digestible foods, no high-gas foods' },
+    { id: 'obesity',      emoji: '⚖️', name: 'Weight Management',        desc: 'Calorie controlled, high satiety', rules: 'calorie controlled, high protein and fibre for satiety, low energy density, minimal added fats' },
+    { id: 'anaemia',      emoji: '🔴', name: 'Anaemia / Low Iron',       desc: 'Iron-rich, vitamin C pairing',   rules: 'iron-rich ingredients, pair with vitamin C to boost absorption' },
   ];
 
   let selectedConditions = new Set();
   let ingredients = [];
 
-  // ── Render health condition buttons ──────────────────────
   function renderHealthGrid() {
-    const grid = document.getElementById('healthGrid');
-    grid.innerHTML = CONDITIONS.map(c => `
-      <button class="hc-btn ${selectedConditions.has(c.id) ? 'selected' : ''}"
-              onclick="toggleCondition('${c.id}')">
+    document.getElementById('healthGrid').innerHTML = CONDITIONS.map(c => `
+      <button class="hc-btn ${selectedConditions.has(c.id) ? 'selected' : ''}" onclick="toggleCondition('${c.id}')">
         <span class="hc-emoji">${c.emoji}</span>
-        <span class="hc-text">
-          <span class="hc-name">${c.name}</span>
-          <span class="hc-desc">${c.desc}</span>
-        </span>
+        <span class="hc-text"><span class="hc-name">${c.name}</span><span class="hc-desc">${c.desc}</span></span>
         <span class="hc-check">${selectedConditions.has(c.id) ? '✓' : ''}</span>
-      </button>
-    `).join('');
+      </button>`).join('');
   }
 
   function toggleCondition(id) {
-    if (selectedConditions.has(id)) {
-      selectedConditions.delete(id);
-    } else {
-      selectedConditions.add(id);
-    }
+    selectedConditions.has(id) ? selectedConditions.delete(id) : selectedConditions.add(id);
     renderHealthGrid();
     updateHealthSummary();
   }
@@ -314,26 +344,19 @@
     const count = selectedConditions.size;
     document.getElementById('healthCount').textContent = count > 0 ? `(${count} selected)` : '';
     const summary = document.getElementById('selectedSummary');
-    if (count === 0) {
-      summary.classList.remove('visible');
-      return;
-    }
+    if (count === 0) { summary.classList.remove('visible'); return; }
     summary.classList.add('visible');
-    const tags = [...selectedConditions].map(id => {
+    summary.innerHTML = 'Active: ' + [...selectedConditions].map(id => {
       const c = CONDITIONS.find(x => x.id === id);
       return `<span class="cond-tag">${c.emoji} ${c.name}</span>`;
     }).join('');
-    summary.innerHTML = `Active health filters: ${tags}`;
   }
 
   function toggleHealthPanel() {
-    const body = document.getElementById('healthBody');
-    const arrow = document.getElementById('healthArrow');
-    body.classList.toggle('open');
-    arrow.classList.toggle('open');
+    document.getElementById('healthBody').classList.toggle('open');
+    document.getElementById('healthArrow').classList.toggle('open');
   }
 
-  // ── Ingredient logic ────────────────────────────────────
   const input = document.getElementById('ingredientInput');
   input.addEventListener('keydown', e => { if (e.key === 'Enter') addIngredient(); });
 
@@ -343,9 +366,7 @@
     val.split(',').map(s => s.trim()).filter(Boolean).forEach(item => {
       if (item && !ingredients.includes(item)) ingredients.push(item);
     });
-    input.value = '';
-    renderTags();
-    updateBtn();
+    input.value = ''; renderTags(); updateBtn();
   }
 
   function quickAdd(item) {
@@ -353,8 +374,7 @@
   }
 
   function removeIngredient(item) {
-    ingredients = ingredients.filter(i => i !== item);
-    renderTags(); updateBtn();
+    ingredients = ingredients.filter(i => i !== item); renderTags(); updateBtn();
   }
 
   function renderTags() {
@@ -383,28 +403,30 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  // ── Build health rules string for prompt ────────────────
   function buildHealthRules() {
     if (selectedConditions.size === 0) return '';
     const rules = [...selectedConditions].map(id => {
       const c = CONDITIONS.find(x => x.id === id);
       return `- ${c.name}: ${c.rules}`;
     }).join('\n');
-    return `\n\nCRITICAL HEALTH REQUIREMENTS — the user has these medical conditions. Every meal MUST strictly follow ALL these rules:\n${rules}\nFor each meal, include a "health_badges" array listing which conditions it is safe for.`;
+    return `\n\nCRITICAL HEALTH REQUIREMENTS:\n${rules}`;
   }
 
-  // ── Generate meals ──────────────────────────────────────
+  function buildHealthInsightsInstruction() {
+    if (selectedConditions.size === 0) return '';
+    const condNames = [...selectedConditions].map(id => CONDITIONS.find(x => x.id === id).name).join(', ');
+    return `\n\nFor each meal, include a "health_insights" array of 2-4 objects explaining WHY specific ingredients in this meal are beneficial for the user's conditions (${condNames}). Each insight must be specific, educational, and mention the actual ingredient by name. Use plain friendly language like a knowledgeable friend explaining your food to you. Format:\n{ "icon": "🫒", "text": "<b>Olive oil</b> contains oleic acid, a heart-healthy fat that actively helps lower LDL (bad) cholesterol." }`;
+  }
+
   async function generateMeals() {
-    const diet     = document.getElementById('dietPref').value;
-    const skill    = document.getElementById('skillLevel').value;
+    const diet = document.getElementById('dietPref').value;
+    const skill = document.getElementById('skillLevel').value;
     const servings = document.getElementById('servings').value;
 
     document.getElementById('generateBtn').style.display = 'none';
     document.getElementById('loadingState').classList.add('active');
     document.getElementById('resultsSection').classList.remove('active');
     document.getElementById('errorState').classList.remove('active');
-
-    const healthRules = buildHealthRules();
 
     const prompt = `You are Plenty, a compassionate AI chef who helps people discover the abundance in what they already have. Your mission is to make people feel empowered and abundant, not poor.
 
@@ -413,38 +435,36 @@ A user has these ingredients: ${ingredients.join(', ')}
 Their preferences:
 - Diet: ${diet}
 - Skill level: ${skill}
-- Servings needed: ${servings}${healthRules}
+- Servings needed: ${servings}${buildHealthRules()}${buildHealthInsightsInstruction()}
 
 Return ONLY valid JSON (no markdown, no extra text) in this exact structure:
 {
-  "confidence_message": "A short warm empowering statement about how much they can do with what they have (max 15 words)",
+  "confidence_message": "Short warm empowering statement (max 15 words)",
   "meal_count_celebration": "e.g. '3 nourishing meals' or '3 heart-healthy dinners'",
   "meals": [
     {
       "name": "Meal name",
-      "affirmation": "Short empowering sentence about this meal (max 12 words)",
-      "description": "2 sentence description, warm and appetizing tone",
+      "affirmation": "Short empowering sentence (max 12 words)",
+      "description": "2 sentence warm appetizing description",
       "time_minutes": 25,
       "difficulty": "easy",
       "ingredients_used": ["ingredient1", "ingredient2"],
       "health_badges": ["Diabetes safe", "Heart healthy"],
-      "nutrition": {
-        "calories": "~350 kcal",
-        "protein": "18g",
-        "carbs": "42g",
-        "fat": "12g"
-      },
+      "health_insights": [
+        { "icon": "🫒", "text": "<b>Olive oil</b> contains heart-healthy fats that help lower bad cholesterol." }
+      ],
+      "nutrition": { "calories": "~350 kcal", "protein": "18g", "carbs": "42g", "fat": "12g" },
       "steps": ["Step one", "Step two", "Step three", "Step four"]
     }
   ],
   "stretch_meal": {
-    "name": "A special meal name",
+    "name": "Meal name",
     "one_extra_item": "one cheap grocery item",
-    "description": "What becomes possible with just this one item. Keep it exciting and specific."
+    "description": "What becomes possible. Keep it exciting and specific."
   }
 }
 
-Generate exactly 3 meals. Use ONLY the ingredients provided. Respect ALL diet and health rules strictly. Use warm, empowering, celebratory language. Never use words like 'limited', 'few', 'only', 'just' — use 'fresh', 'wholesome', 'nourishing', 'resourceful' instead.`;
+Generate exactly 3 meals. Use ONLY ingredients provided. Respect ALL health rules strictly. Use warm empowering language. Never use words like 'limited', 'few', 'only', 'just'.`;
 
     try {
       const response = await fetch('/api/meals', {
@@ -452,18 +472,14 @@ Generate exactly 3 meals. Use ONLY the ingredients provided. Respect ALL diet an
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: 'claude-sonnet-4-20250514',
-          max_tokens: 1500,
+          max_tokens: 2000,
           messages: [{ role: 'user', content: prompt }]
         })
       });
-
       const data = await response.json();
       if (!response.ok) throw new Error(data.error?.message || 'API error');
-
       const text = data.content.map(b => b.text || '').join('');
-      const clean = text.replace(/```json|```/g, '').trim();
-      renderResults(JSON.parse(clean));
-
+      renderResults(JSON.parse(text.replace(/```json|```/g, '').trim()));
     } catch (err) {
       document.getElementById('loadingState').classList.remove('active');
       document.getElementById('errorState').classList.add('active');
@@ -472,19 +488,14 @@ Generate exactly 3 meals. Use ONLY the ingredients provided. Respect ALL diet an
     }
   }
 
-  // ── Render results ──────────────────────────────────────
   function renderResults(data) {
     document.getElementById('loadingState').classList.remove('active');
-
     document.getElementById('confidenceBanner').innerHTML = `
       <div class="big-num">${data.meal_count_celebration}</div>
       <p>${data.confidence_message}</p>`;
-
-    const condLabel = selectedConditions.size > 0
-      ? ` · tailored for your health needs`
-      : '';
     document.getElementById('resultsSubtext').textContent =
-      `Made from your ${ingredients.length} ingredients${condLabel}`;
+      `Made from your ${ingredients.length} ingredients` +
+      (selectedConditions.size > 0 ? ' · tailored for your health needs' : '');
 
     const container = document.getElementById('mealsContainer');
     container.innerHTML = '';
@@ -495,12 +506,27 @@ Generate exactly 3 meals. Use ONLY the ingredients provided. Respect ALL diet an
 
       const diffClass = meal.difficulty === 'easy' ? 'badge-easy' : meal.difficulty === 'medium' ? 'badge-medium' : 'badge-hard';
 
-      const healthBadgesHtml = (meal.health_badges && meal.health_badges.length > 0)
-        ? `<div class="health-badges-row">${meal.health_badges.map(b => `<span class="health-badge">✓ ${b}</span>`).join('')}</div>`
-        : '';
+      const healthBadgesHtml = (meal.health_badges?.length)
+        ? `<div class="health-badges-row">${meal.health_badges.map(b => `<span class="health-badge">✓ ${b}</span>`).join('')}</div>` : '';
 
-      const stepsHtml = meal.steps.map((step, i) => `
-        <div class="step"><div class="step-num">${i+1}</div><div>${step}</div></div>`).join('');
+      // Health insights panel — only shown if conditions selected and insights exist
+      const healthInsightsHtml = (meal.health_insights?.length && selectedConditions.size > 0)
+        ? `<div class="health-explanation">
+            <div class="health-explanation-header">
+              <span style="font-size:16px">🌿</span>
+              <span class="health-explanation-title">Why this is good for you</span>
+            </div>
+            <div class="health-insight-list">
+              ${meal.health_insights.map(insight => `
+                <div class="health-insight">
+                  <div class="insight-icon">${insight.icon}</div>
+                  <div class="insight-text">${insight.text}</div>
+                </div>`).join('')}
+            </div>
+          </div>` : '';
+
+      const stepsHtml = meal.steps.map((step, i) =>
+        `<div class="step"><div class="step-num">${i+1}</div><div>${step}</div></div>`).join('');
 
       const ingsHtml = meal.ingredients_used.map(i =>
         `<span class="ing-chip">${i}</span>`).join('');
@@ -516,6 +542,7 @@ Generate exactly 3 meals. Use ONLY the ingredients provided. Respect ALL diet an
         ${healthBadgesHtml}
         <p class="meal-affirmation">"${meal.affirmation}"</p>
         <p class="meal-description">${meal.description}</p>
+        ${healthInsightsHtml}
         <div class="meal-sections">
           <div>
             <div class="meal-section-label">Ingredients used</div>
@@ -561,7 +588,6 @@ Generate exactly 3 meals. Use ONLY the ingredients provided. Respect ALL diet an
     btn.textContent = content.classList.contains('open') ? '📋 Hide cooking steps' : '📋 Show cooking steps';
   }
 
-  // Init
   renderHealthGrid();
 </script>
 </body>
