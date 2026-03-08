@@ -159,6 +159,79 @@
   .error-state { background: #FDE8E8; border: 1.5px solid #F5C6C6; border-radius: 16px; padding: 20px 24px; text-align: center; margin-bottom: 24px; display: none; }
   .error-state.active { display: block; }
   .error-state p { color: #C43D3D; font-size: 14px; }
+
+  /* Email signup */
+  .email-signup-card {
+    background: linear-gradient(135deg, #3D2B1F 0%, #5C3D2A 100%);
+    border-radius: 20px;
+    padding: 28px;
+    margin: 8px 0 24px;
+    text-align: center;
+    animation: cardSlide 0.4s 0.6s cubic-bezier(0.22,1,0.36,1) both;
+  }
+  .email-signup-card h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    color: var(--cream);
+    margin-bottom: 6px;
+  }
+  .email-signup-card p {
+    font-size: 13px;
+    color: #C5B8A8;
+    margin-bottom: 18px;
+    line-height: 1.5;
+  }
+  .email-row {
+    display: flex;
+    gap: 8px;
+    max-width: 420px;
+    margin: 0 auto;
+  }
+  .email-field {
+    flex: 1;
+    background: rgba(255,255,255,0.1);
+    border: 1.5px solid rgba(255,255,255,0.2);
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: white;
+    outline: none;
+    transition: all 0.2s;
+  }
+  .email-field::placeholder { color: rgba(255,255,255,0.4); }
+  .email-field:focus { border-color: var(--gold); background: rgba(255,255,255,0.15); }
+  .email-submit-btn {
+    background: var(--terracotta);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 12px 20px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .email-submit-btn:hover { background: #B0561F; transform: scale(1.03); }
+  .email-submit-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+  .email-success {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: var(--gold);
+    font-size: 15px;
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    margin-top: 4px;
+  }
+  .email-success.show { display: flex; }
+  .email-error { font-size: 12px; color: #F5A0A0; margin-top: 8px; display: none; }
+  .email-error.show { display: block; }
+
   footer { text-align: center; padding: 24px 0 48px; font-size: 12px; color: #C5BDB2; }
 </style>
 </head>
@@ -264,7 +337,17 @@
     </div>
     <div id="mealsContainer"></div>
     <div id="stretchCard"></div>
-    <button class="try-again-btn" onclick="resetApp()">← Try different ingredients</button>
+    <div class="email-signup-card" id="emailSignupCard">
+      <h3>🌿 Want a week of meal ideas?</h3>
+      <p>Join people eating well on a budget.<br>Get new ideas and features straight to your inbox.</p>
+      <div class="email-row">
+        <input type="email" class="email-field" id="emailField" placeholder="your@email.com" />
+        <button class="email-submit-btn" id="emailSubmitBtn" onclick="submitEmail()">Join free</button>
+      </div>
+      <div class="email-success" id="emailSuccess">✨ You're in! Welcome to Plenty.</div>
+      <div class="email-error" id="emailError">Something went wrong — please try again.</div>
+    </div>
+        <button class="try-again-btn" onclick="resetApp()">← Try different ingredients</button>
   </div>
 
 </div>
@@ -297,7 +380,52 @@
 
   function toggleCondition(id) {
     selectedConditions.has(id) ? selectedConditions.delete(id) : selectedConditions.add(id);
-    renderHealthGrid(); updateHealthSummary();
+  
+  const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbz5JOcWjBwzQyreQBiz0h_Dp0-WDb5UZpMUaejp3W3Lv8Zsgao9RNAcl19UApUl46Xe/exec';
+
+  async function submitEmail() {
+    const emailField = document.getElementById('emailField');
+    const btn = document.getElementById('emailSubmitBtn');
+    const success = document.getElementById('emailSuccess');
+    const error = document.getElementById('emailError');
+    const email = emailField.value.trim();
+
+    if (!email || !email.includes('@')) {
+      error.textContent = 'Please enter a valid email address.';
+      error.classList.add('show');
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Joining...';
+    error.classList.remove('show');
+
+    try {
+      await fetch(SHEETS_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, source: 'Plenty App' })
+      });
+      // no-cors means we can't read the response, but if no exception it worked
+      emailField.style.display = 'none';
+      btn.style.display = 'none';
+      success.classList.add('show');
+    } catch (err) {
+      btn.disabled = false;
+      btn.textContent = 'Join free';
+      error.textContent = 'Something went wrong — please try again.';
+      error.classList.add('show');
+    }
+  }
+
+  // Allow Enter key on email field
+  document.addEventListener('DOMContentLoaded', () => {
+    const ef = document.getElementById('emailField');
+    if (ef) ef.addEventListener('keydown', e => { if (e.key === 'Enter') submitEmail(); });
+  });
+
+  renderHealthGrid(); updateHealthSummary();
   }
 
   function updateHealthSummary() {
