@@ -18,6 +18,39 @@ export default async function handler(req, res) {
     });
 
     const data = await response.json();
+
+    // Extract and sanitise the JSON text from the AI response before sending to client
+    if (data.content && Array.isArray(data.content)) {
+      const rawText = data.content.map(b => b.text || '').join('');
+
+      // Find the JSON object boundaries
+      const start = rawText.indexOf('{');
+      const end = rawText.lastIndexOf('}');
+
+      if (start !== -1 && end !== -1) {
+        let jsonStr = rawText.substring(start, end + 1);
+
+        // Remove all actual newlines/tabs inside strings by collapsing them
+        // This is the main cause of JSON parse errors from AI responses
+        jsonStr = jsonStr
+          .replace(/\r\n/g, ' ')
+          .replace(/\r/g, ' ')
+          .replace(/\n/g, ' ')
+          .replace(/\t/g, ' ')
+          .replace(/[\u0000-\u001F\u007F]/g, ' ');
+
+        try {
+          // Validate it parses correctly on the server
+          const parsed = JSON.parse(jsonStr);
+          // Send back clean pre-parsed data
+          return res.status(200).json({ clean: true, parsed });
+        } catch(parseErr) {
+          // Send raw for client to handle
+          return res.status(200).json({ clean: false, raw: jsonStr, original: data });
+        }
+      }
+    }
+
     res.status(response.status).json(data);
   } catch (err) {
     res.status(500).json({ error: err.message });
