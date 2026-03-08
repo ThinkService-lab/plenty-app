@@ -381,7 +381,7 @@
   function toggleCondition(id) {
     selectedConditions.has(id) ? selectedConditions.delete(id) : selectedConditions.add(id);
   
-  const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbz5JOcWjBwzQyreQBiz0h_Dp0-WDb5UZpMUaejp3W3Lv8Zsgao9RNAcl19UApUl46Xe/exec';
+  const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwd-xuLj8t3mQABSLZ8m5pe9arxOKr6qRkTLkbDnyS-0UCuhqia-fFRC8FgZLKeV25a/exec';
 
   async function submitEmail() {
     const emailField = document.getElementById('emailField');
@@ -401,13 +401,14 @@
     error.classList.remove('show');
 
     try {
-      await fetch(SHEETS_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, source: 'Plenty App' })
+      // Use a hidden image trick to send to Google Apps Script
+      // This bypasses CORS entirely — the request still goes through
+      const params = new URLSearchParams({ email, source: 'Plenty App' });
+      await fetch(SHEETS_URL + '?' + params.toString(), {
+        method: 'GET',
+        mode: 'no-cors'
       });
-      // no-cors means we can't read the response, but if no exception it worked
+      // Show success immediately — no-cors won't give us a response but request goes through
       emailField.style.display = 'none';
       btn.style.display = 'none';
       success.classList.add('show');
