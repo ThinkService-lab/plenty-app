@@ -602,6 +602,7 @@
   
   // ── Share feature ──
   let currentShareMeal = null;
+  let mealsData = [];
   let currentShareImageUrl = null;
 
   const SHARE_GRADIENTS = [
@@ -610,7 +611,8 @@
     'linear-gradient(135deg, #3D2B1F 0%, #6B4A35 50%, #C4622D 100%)'
   ];
 
-  async function shareMeal(btn, meal) {
+  async function shareMeal(btn, mealIdx) {
+    const meal = mealsData[mealIdx];
     currentShareMeal = meal;
     currentShareImageUrl = null;
 
@@ -880,6 +882,7 @@ Rules: exactly 3 meals, ONLY use provided ingredients, respect health rules, nev
 
   // ── Render results ──
   function renderResults(data) {
+    mealsData = data.meals;
     document.getElementById('loadingState').classList.remove('active');
     document.getElementById('confidenceBanner').innerHTML = `
       <div class="big-num">${data.meal_count_celebration}</div>
@@ -952,7 +955,7 @@ Rules: exactly 3 meals, ONLY use provided ingredients, respect health rules, nev
         </div>
         <button class="steps-toggle" onclick="toggleSteps(this)">📋 Show cooking steps</button>
         <div class="steps-content">${stepsHtml}</div>
-        <button class="share-btn" onclick="shareMeal(this, ${JSON.stringify(meal).replace(/`/g, '\`')})">📤 Share this meal</button>`;
+        <button class="share-btn" onclick="shareMeal(this, ${mealIndex})">📤 Share this meal</button>`;
       container.appendChild(card);
     });
 
@@ -1032,6 +1035,7 @@ Rules: exactly 3 meals, ONLY use provided ingredients, respect health rules, nev
 
   // ── Share feature ──
   let currentShareMeal = null;
+  let mealsData = [];
   let currentShareImageUrl = null;
 
   const SHARE_GRADIENTS = [
@@ -1040,7 +1044,8 @@ Rules: exactly 3 meals, ONLY use provided ingredients, respect health rules, nev
     'linear-gradient(135deg, #3D2B1F 0%, #6B4A35 50%, #C4622D 100%)'
   ];
 
-  async function shareMeal(btn, meal) {
+  async function shareMeal(btn, mealIdx) {
+    const meal = mealsData[mealIdx];
     currentShareMeal = meal;
     currentShareImageUrl = null;
 
