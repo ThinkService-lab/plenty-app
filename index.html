@@ -546,46 +546,37 @@
 
     const ingList = buildIngredientsList();
 
-    const prompt = `You are Plenty, a compassionate AI chef who helps people discover the abundance in what they already have. Your mission is to make people feel empowered and abundant, not poor.
+    const prompt = `You are Plenty, a compassionate AI chef. Make people feel empowered and abundant.
 
-A user has these ingredients with quantities: ${ingList}
+Ingredients: ${ingList}
+Diet: ${diet} | Skill: ${skill} | Servings: ${servings}${buildHealthRules()}${buildHealthInsightsInstruction()}
 
-Their preferences:
-- Diet: ${diet}
-- Skill level: ${skill}
-- Servings needed: ${servings}${buildHealthRules()}${buildHealthInsightsInstruction()}
-
-IMPORTANT: Because you know the exact quantities, you must:
-1. Only suggest meals that can realistically be made with the quantities provided
-2. In the ingredients_used array, list each ingredient with the specific quantity needed e.g. "2 eggs", "1 cup rice"
-3. If an ingredient quantity might be tight for the number of servings, note this in the cooking steps
-
-Return ONLY valid JSON (no markdown, no extra text):
+Return ONLY valid JSON, no markdown:
 {
-  "confidence_message": "Short warm empowering statement (max 15 words)",
-  "meal_count_celebration": "e.g. '3 nourishing meals'",
+  "confidence_message": "Short warm statement (max 10 words)",
+  "meal_count_celebration": "3 nourishing meals",
   "meals": [
     {
       "name": "Meal name",
-      "affirmation": "Short empowering sentence (max 12 words)",
-      "description": "2 sentence warm appetizing description",
+      "affirmation": "Short empowering line (max 8 words)",
+      "description": "One appetizing sentence.",
       "time_minutes": 25,
       "difficulty": "easy",
       "ingredients_used": ["2 eggs", "1 cup rice"],
-      "health_badges": ["Diabetes safe"],
-      "health_insights": [{ "icon": "🥚", "text": "<b>Eggs</b> provide complete protein." }],
-      "nutrition": { "calories": "~350 kcal", "protein": "18g", "carbs": "42g", "fat": "12g" },
-      "steps": ["Step one", "Step two", "Step three", "Step four"]
+      "health_badges": [],
+      "health_insights": [],
+      "nutrition": { "calories": "350 kcal", "protein": "18g", "carbs": "42g", "fat": "12g" },
+      "steps": ["Step 1", "Step 2", "Step 3"]
     }
   ],
   "stretch_meal": {
     "name": "Meal name",
-    "one_extra_item": "one cheap grocery item",
-    "description": "What becomes possible. Exciting and specific."
+    "one_extra_item": "one item",
+    "description": "One exciting sentence."
   }
 }
 
-Generate exactly 3 meals. Use ONLY ingredients provided. Respect ALL health rules. Use warm empowering language.`;
+Rules: exactly 3 meals, ONLY use provided ingredients, respect health rules, never say limited/few/only.`;
 
     try {
       const response = await fetch('/api/meals', {
@@ -593,7 +584,7 @@ Generate exactly 3 meals. Use ONLY ingredients provided. Respect ALL health rule
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: 'claude-sonnet-4-6',
-          max_tokens: 1500,
+          max_tokens: 2500,
           messages: [{ role: 'user', content: prompt }]
         })
       });
