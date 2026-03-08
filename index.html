@@ -671,8 +671,9 @@
       </button>`).join('');
   }
 
-  function toggleCondition(id) {
+  window.toggleCondition = function toggleCondition(id) {
     selectedConditions.has(id) ? selectedConditions.delete(id) : selectedConditions.add(id);
+    renderHealthGrid();
   }
 
   // ── Rating feature ──
@@ -835,7 +836,7 @@ https://plenty-app-nine.vercel.app`;
     }).join('');
   }
 
-  function toggleHealthPanel() {
+  window.toggleHealthPanel = function toggleHealthPanel() {
     document.getElementById('healthBody').classList.toggle('open');
     document.getElementById('healthArrow').classList.toggle('open');
   }
@@ -851,7 +852,7 @@ https://plenty-app-nine.vercel.app`;
     return { qty: '', name: val };
   }
 
-  function addIngredient() {
+  window.addIngredient = function addIngredient() {
     const raw = ingInput.value.trim();
     if (!raw) return;
     raw.split(',').map(s => s.trim()).filter(Boolean).forEach(item => {
