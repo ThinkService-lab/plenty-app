@@ -554,7 +554,7 @@
     </div>
   </div>
 
-  <button class="generate-btn" id="generateBtn" onclick="generateMeals()" disabled>
+  <button class="generate-btn" id="generateBtn" disabled>
     <span>✨</span> Show me what I can make
   </button>
 
@@ -789,6 +789,9 @@ https://plenty-app-nine.vercel.app`;
     document.getElementById('shareModalOverlay').classList.remove('active');
   }
 
+  // Attach generate button listener
+  document.getElementById('generateBtn').addEventListener('click', window.generateMeals);
+
   renderHealthGrid();
     updateHealthSummary();
   }
@@ -896,7 +899,7 @@ https://plenty-app-nine.vercel.app`;
   }
 
   // ── Generate meals ──
-  async function generateMeals() {
+  window.generateMeals = async function() {
     const diet = document.getElementById('dietPref').value;
     const skill = document.getElementById('skillLevel').value;
     const servings = document.getElementById('servings').value;
@@ -906,49 +909,34 @@ https://plenty-app-nine.vercel.app`;
     document.getElementById('resultsSection').classList.remove('active');
     document.getElementById('errorState').classList.remove('active');
 
+    // Show reassuring message after 15 seconds
+    const slowTimer = setTimeout(() => {
+      const subtext = document.querySelector('.loading-subtext');
+      if (subtext) subtext.textContent = 'Almost there — crafting something special for you...';
+    }, 15000);
+
     const ingList = buildIngredientsList();
 
-    const prompt = `You are Plenty, a compassionate AI chef. Make people feel empowered and abundant.
+    const prompt = `Plenty AI chef. Empowering, abundant tone. Never say limited/few/only.
 
 Ingredients: ${ingList}
-Diet: ${diet} | Skill: ${skill} | Servings: ${servings}${buildHealthRules()}${buildHealthInsightsInstruction()}
+Diet: ${diet} | Skill: ${skill} | Servings: ${servings}${buildHealthRules()}${buildRatingContext()}
 
-Return ONLY valid JSON, no markdown:
-{
-  "confidence_message": "Short warm statement (max 10 words)",
-  "meal_count_celebration": "3 nourishing meals",
-  "meals": [
-    {
-      "name": "Meal name",
-      "affirmation": "Short empowering line (max 8 words)",
-      "description": "One appetizing sentence.",
-      "time_minutes": 25,
-      "difficulty": "easy",
-      "ingredients_used": ["2 eggs", "1 cup rice"],
-      "health_badges": [],
-      "health_insights": [],
-      "nutrition": { "calories": "350 kcal", "protein": "18g", "carbs": "42g", "fat": "12g" },
-      "steps": ["Step 1", "Step 2", "Step 3"]
-    }
-  ],
-  "stretch_meal": {
-    "name": "Meal name",
-    "one_extra_item": "one item",
-    "description": "One exciting sentence."
-  }
-}
+Respond ONLY in this JSON format, no markdown:
+{"confidence_message":"warm message","meal_count_celebration":"3 meals","meals":[{"name":"Name","affirmation":"Short line","description":"One sentence.","time_minutes":20,"difficulty":"easy","ingredients_used":["item"],"health_badges":[],"health_insights":[],"nutrition":{"calories":"300 kcal","protein":"15g","carbs":"30g","fat":"10g"},"steps":["Step 1","Step 2","Step 3"]}],"stretch_meal":{"name":"Name","one_extra_item":"item","description":"One sentence."}}
 
-Rules: exactly 3 meals, ONLY use provided ingredients, respect health rules, never say limited/few/only.${buildRatingContext()}`;
+Exactly 3 meals. Only use provided ingredients.${buildHealthInsightsInstruction()}`;
 
     try {
       const response = await fetch('/api/meals', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ max_tokens: 1800, messages: [{ role: 'user', content: prompt }] })
+        body: JSON.stringify({ max_tokens: 1200, messages: [{ role: 'user', content: prompt }] })
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error?.message || 'API error');
 
+      clearTimeout(slowTimer);
       if (data.clean && data.parsed) {
         renderResults(data.parsed);
       } else {
@@ -959,9 +947,10 @@ Rules: exactly 3 meals, ONLY use provided ingredients, respect health rules, nev
         renderResults(JSON.parse(text.substring(jsonStart, jsonEnd + 1)));
       }
     } catch (err) {
+      clearTimeout(slowTimer);
       document.getElementById('loadingState').classList.remove('active');
       document.getElementById('errorState').classList.add('active');
-      document.getElementById('errorMsg').textContent = 'Something went wrong: ' + err.message;
+      document.getElementById('errorMsg').textContent = err.message.includes('abort') ? 'Request timed out — please try again.' : 'Something went wrong: ' + err.message;
       document.getElementById('generateBtn').style.display = 'flex';
     }
   }
@@ -1241,6 +1230,9 @@ https://plenty-app-nine.vercel.app`;
     if (e && e.target !== document.getElementById('shareModalOverlay')) return;
     document.getElementById('shareModalOverlay').classList.remove('active');
   }
+
+  // Attach generate button listener
+  document.getElementById('generateBtn').addEventListener('click', window.generateMeals);
 
   renderHealthGrid();
 </script>
