@@ -51,6 +51,9 @@ export default async function handler(req, res) {
   if (typeof image !== 'string' || image.length === 0) {
     return res.status(400).json({ error: 'Invalid request: image is required.' });
   }
+  if (!/^[A-Za-z0-9+/]+=*$/.test(image.slice(0, 100))) {
+    return res.status(400).json({ error: 'Invalid request: image must be base64 encoded.' });
+  }
   if (!ALLOWED_MIME_TYPES.includes(mimeType)) {
     return res.status(400).json({ error: 'Invalid request: unsupported image type.' });
   }
@@ -91,6 +94,10 @@ export default async function handler(req, res) {
 
     clearTimeout(timeout);
     const data = await response.json();
+
+    if (!response.ok) {
+      return res.status(502).json({ error: 'Scan service unavailable. Please try again.' });
+    }
 
     if (data.content && Array.isArray(data.content)) {
       const rawText = data.content.map(b => b.text || '').join('');
