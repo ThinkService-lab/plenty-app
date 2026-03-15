@@ -30,11 +30,11 @@ Allow users to photograph their fridge, pantry, or countertop and have Claude Vi
    - Gallery input has no capture attribute (file picker on desktop, gallery on mobile)
 4. Frontend resizes the image to max 800px on either dimension using the Canvas API, then converts to base64
 5. Frontend POSTs `{ image: "<base64>", mimeType: "image/jpeg" }` to `/api/scan`
-6. `api/scan.js` calls Claude Haiku vision with the image and a structured prompt
+6. `api/scan.js` validates payload, checks rate limit, then calls Claude Haiku vision
 7. Claude returns JSON: `{"ingredients": [{"name": "chicken", "quantity": "500g"}, ...]}`
 8. Frontend renders the confirmation panel with pre-ticked checkboxes
 9. User reviews, unticks unwanted items, clicks **"Add [n] ingredients"**
-10. Ticked ingredients merge into the existing tag list (duplicates skipped), each with `tagPop` animation
+10. Ticked ingredients merge into the existing tag list via `window.quickAdd()` (duplicates skipped automatically), each with `tagPop` animation
 11. Camera options and confirmation panel dismiss
 
 ---
@@ -45,9 +45,10 @@ Allow users to photograph their fridge, pantry, or countertop and have Claude Vi
 A 📷 icon button inserted between the ingredient text input and the existing `+` button in `.ingredient-input-row`. Styled to match the existing `+` add button (same height, same border-radius, terracotta background).
 
 ### Two hidden file inputs
+Both include `onchange="handleScanFile(this)"`:
 ```html
-<input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none">
-<input type="file" id="galleryInput" accept="image/*" style="display:none">
+<input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none" onchange="handleScanFile(this)">
+<input type="file" id="galleryInput" accept="image/*" style="display:none" onchange="handleScanFile(this)">
 ```
 
 ### Scan options (inline, below input row)
@@ -99,9 +100,17 @@ POST /api/scan
 { "image": "<base64 encoded image>", "mimeType": "image/jpeg" }
 ```
 
+### Security & Validation
+Apply the same patterns as `api/meals.js`:
+1. **Rate limiting** — reuse the same `isRateLimited(ip)` pattern (10 requests per 60 seconds per IP)
+2. **Input validation** — before passing to Claude:
+   - `req.body.image` must be a non-empty string
+   - `req.body.mimeType` must be one of `["image/jpeg", "image/png", "image/webp"]`
+   - `req.body.image.length` must be under 4,000,000 characters (guards against Vercel's 4.5MB request body limit); return HTTP 413 if exceeded
+
 ### Claude Vision call
-- Model: `claude-haiku-4-5-20251001` (same as meals — within Vercel 10s timeout)
-- Message type: user message with image content block + text prompt
+- Model: `claude-haiku-4-5-20251001` (same as meals — within Vercel 10s timeout; confirmed to support vision content blocks)
+- Message type: user message with image content block (`{ type: "image", source: { type: "base64", media_type, data } }`) followed by text prompt
 - Prompt:
   ```
   Look at this image and identify all visible food ingredients.
@@ -111,7 +120,11 @@ POST /api/scan
   {"ingredients":[{"name":"egg","quantity":"3"},{"name":"onion"}]}
   If you cannot identify any ingredients, return: {"ingredients":[]}
   ```
-- `max_tokens: 300` (ingredient lists are short)
+- `max_tokens: 500` (20+ ingredient dense fridge shots need headroom beyond 300)
+
+### Response parsing
+- Apply the same `charCodeAt`-based control character cleaning used in `api/meals.js` before calling `JSON.parse()` — same Vercel compilation risk applies here
+- Return parsed JSON directly to frontend
 
 ### Response
 ```json
@@ -119,6 +132,9 @@ POST /api/scan
 ```
 
 ### Error handling
+- Rate limited: HTTP 429
+- Invalid payload: HTTP 400
+- Payload too large: HTTP 413
 - If Claude returns no ingredients: `{ "ingredients": [] }` — frontend treats as silent fallback
 - If API call fails: HTTP 500 with `{ "error": "Scan failed" }` — frontend shows error message
 
@@ -146,16 +162,20 @@ function resizeImage(file, maxPx = 800) {
 Called by the file input's `onchange`. Reads the file, resizes it, shows scan state, POSTs to `/api/scan`, then either shows confirmation panel or triggers error fallback.
 
 ### `window.addScannedIngredients()`
-Reads checked items from the confirmation panel. For each, calls the existing `addIngredientToList(name, qty)` function (or equivalent) — skipping any name already in the current ingredient tags. Dismisses the panel after.
+Reads checked items from the confirmation panel. For each checked item, calls `window.quickAdd(name, qty)` — the existing function that handles adding ingredients, deduplication (case-insensitive via `parseIngredient()`), tag rendering, and button state update. No separate duplicate check needed — `quickAdd()` already handles it. Calls `dismissScan()` after.
 
 ### `window.dismissScan()`
-Hides scan options, scan state, confirmation panel, and error state. Resets to clean input row.
+Hides scan options, scan state, confirmation panel, and error state. Resets the file input values to allow re-scanning the same image:
+```javascript
+document.getElementById('cameraInput').value = '';
+document.getElementById('galleryInput').value = '';
+```
 
 ---
 
 ## Duplicate Detection
 
-Before adding a scanned ingredient, check if its name (case-insensitive) already exists in the `ingredients` array. If it does, skip it silently. No alert or message needed — the existing tag is already there.
+Handled automatically by `window.quickAdd()`. It calls `parseIngredient()` which lowercases the name, then checks `ingredients.find(i => i.name === name)`. No separate pre-filter should be written — doing so would create divergent logic.
 
 ---
 
@@ -178,10 +198,11 @@ All new elements follow the existing design system:
 ## Constraints & Non-Changes
 
 - No changes to `api/meals.js`, `api/subscribe.js`, or any existing JS logic
-- No changes to the ingredient data structure — scanned items go through the same `addIngredient()` path as typed items
+- No changes to the ingredient data structure — scanned items go through `window.quickAdd()`, the same path as quick-add staple buttons
 - No new environment variables
 - No new npm packages
 - Vercel free tier compatible (Haiku vision calls complete well within 10s)
+- `vercel.json` requires no changes — default function config applies
 - Works on iOS Safari, Android Chrome, and desktop browsers
 
 ---
