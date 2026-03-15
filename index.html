@@ -4,12 +4,28 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Plenty — You Have More Than You Think</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,800;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
   :root {
     --cream: #F7F3EC; --warm-white: #FDFAF5; --earth: #3D2B1F;
     --terracotta: #C4622D; --sage: #7A8C6E; --gold: #D4A847;
     --light-sage: #E8EDE4; --muted: #8A7968;
+
+    /* Elevation system */
+    --shadow-float: 0 12px 48px rgba(45,26,14,0.13), 0 3px 12px rgba(45,26,14,0.08);
+    --shadow-hover: 0 20px 64px rgba(45,26,14,0.18), 0 6px 20px rgba(45,26,14,0.12);
+    --shadow-card: 0 4px 24px rgba(45,26,14,0.09), 0 1px 6px rgba(45,26,14,0.06);
+
+    /* Hero gradient */
+    --hero-gradient: linear-gradient(150deg, #1A0A04 0%, #7A2D10 35%, #C4622D 65%, #D4A847 100%);
+
+    /* Frosted glass */
+    --glass-bg: rgba(255,255,255,0.18);
+    --glass-border: rgba(255,255,255,0.28);
+
+    /* Animation easing */
+    --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { background-color: var(--cream); color: var(--earth); font-family: 'DM Sans', sans-serif; min-height: 100vh; overflow-x: hidden; }
