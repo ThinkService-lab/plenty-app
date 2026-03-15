@@ -175,8 +175,16 @@
   .quick-pill { background: transparent; border: 1px dashed #C5BDB2; border-radius: 100px; padding: 4px 12px; font-size: 12px; color: var(--muted); cursor: pointer; transition: all 0.15s; font-family: 'DM Sans', sans-serif; }
   .quick-pill:hover { background: var(--light-sage); border-color: var(--sage); color: var(--earth); }
 
-  .generate-btn { width: 100%; background: var(--earth); color: var(--cream); border: none; border-radius: 16px; padding: 18px 32px; font-family: 'Playfair Display', serif; font-size: 18px; cursor: pointer; transition: all 0.25s; margin-bottom: 36px; display: flex; align-items: center; justify-content: center; gap: 10px; letter-spacing: -0.3px; }
-  .generate-btn:hover:not(:disabled) { background: var(--terracotta); transform: translateY(-2px); box-shadow: 0 8px 32px rgba(196,98,45,0.3); }
+  @keyframes shimmerSweep {
+    0%   { transform: translateX(-100%) skewX(-15deg); opacity: 0; }
+    20%  { opacity: 1; }
+    100% { transform: translateX(250%) skewX(-15deg); opacity: 0; }
+  }
+  .generate-btn { width: 100%; background: var(--earth); color: var(--cream); border: none; border-radius: 16px; padding: 18px 32px; font-family: 'Playfair Display', serif; font-size: 18px; cursor: pointer; transition: transform 0.15s var(--spring), box-shadow 0.2s, background 0.2s; margin-bottom: 36px; display: flex; align-items: center; justify-content: center; gap: 10px; letter-spacing: -0.3px; position: relative; overflow: hidden; }
+  .generate-btn::before { content: ''; position: absolute; top: 0; left: 0; width: 40%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.28), transparent); transform: translateX(-100%) skewX(-15deg); pointer-events: none; }
+  .generate-btn:hover:not(:disabled)::before { animation: shimmerSweep 0.65s var(--ease-out-expo) forwards; }
+  .generate-btn:hover:not(:disabled) { background: var(--terracotta); transform: translateY(-2px); box-shadow: var(--shadow-hover); }
+  .generate-btn:active:not(:disabled) { transform: scale(0.97); }
   .generate-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
   .loading-state { text-align: center; padding: 48px 0; display: none; }
