@@ -852,6 +852,7 @@
     </div>
   </div>
 
+  <div id="formSection">
   <div class="profile-strip">
     <select class="pill-select" id="dietPref">
       <option value="none">🍽️ No restrictions</option>
@@ -926,6 +927,7 @@
   <button class="generate-btn" id="generateBtn" disabled>
     <span>✨</span> Show me what I can make
   </button>
+  </div><!-- /#formSection -->
 
   <div class="loading-state" id="loadingState">
     <div class="aurora-container">
@@ -1267,6 +1269,7 @@ https://plenty-app-nine.vercel.app`;
     document.getElementById('resultsSection').classList.remove('active');
     document.getElementById('errorState').classList.remove('active');
     document.getElementById('generateBtn').style.display = 'flex';
+    document.getElementById('formSection').style.display = 'block';
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
@@ -1586,8 +1589,9 @@ Exactly 3 meals. Only use provided ingredients.${buildHealthInsightsInstruction(
         </a>
       </div>`;
 
+    document.getElementById('formSection').style.display = 'none';
     document.getElementById('resultsSection').classList.add('active');
-    document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   window.toggleSteps = function toggleSteps(btn) {
