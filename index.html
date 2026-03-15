@@ -1380,12 +1380,11 @@ Exactly 3 meals. Only use provided ingredients.${buildHealthInsightsInstruction(
       const styleIndex = mealIndex % 3;
       const mealEmojis = ['🍲', '🥘', '🍛', '🥗', '🍜', '🫕'];
       const emoji = mealEmojis[Math.floor(Math.random() * mealEmojis.length)];
-      const photoHtml = `<div class="meal-placeholder meal-placeholder-style-${styleIndex}">
-        <div class="meal-placeholder-emoji">${emoji}</div>
-        <div class="meal-placeholder-name">${meal.name}</div>
-        <div class="meal-placeholder-badges">
-          <span class="meal-placeholder-badge">⏱ ${meal.time_minutes} min</span>
-          <span class="meal-placeholder-badge">${meal.difficulty}</span>
+      const cardHeaderHtml = `<div class="meal-card-header">
+        <div class="meal-emoji-box">${emoji}</div>
+        <div class="meal-header-name">
+          ${meal.name}
+          <span>⏱ ${meal.time_minutes} min · ${meal.difficulty}</span>
         </div>
       </div>`;
       const diffClass = meal.difficulty === 'easy' ? 'badge-easy' : meal.difficulty === 'medium' ? 'badge-medium' : 'badge-hard';
@@ -1405,14 +1404,8 @@ Exactly 3 meals. Only use provided ingredients.${buildHealthInsightsInstruction(
         `<div class="step"><div class="step-num">${i+1}</div><div>${step}</div></div>`).join('');
 
       card.innerHTML = `
-        ${photoHtml}
-        <div class="meal-top">
-          <h3 class="meal-name">${meal.name}</h3>
-          <div class="meal-badges">
-            <span class="badge badge-time">⏱ ${meal.time_minutes} min</span>
-            <span class="badge ${diffClass}">${meal.difficulty}</span>
-          </div>
-        </div>
+        ${cardHeaderHtml}
+        <div class="meal-card-body">
         ${healthBadgesHtml}
         <p class="meal-affirmation">"${meal.affirmation}"</p>
         <p class="meal-description">${meal.description}</p>
@@ -1440,7 +1433,8 @@ Exactly 3 meals. Only use provided ingredients.${buildHealthInsightsInstruction(
           <button class="rating-btn" data-mealindex="${mealIndex}" data-action="dislike">👎</button>
           <span class="rating-feedback" id="ratingFeedback${mealIndex}">Got it!</span>
         </div>
-        <button class="share-btn" data-mealindex="${mealIndex}">📤 Share this meal</button>`;
+        <button class="share-btn" data-mealindex="${mealIndex}">📤 Share this meal</button>
+        </div>`;
       container.appendChild(card);
       // Attach share button listener safely after card is in DOM
       const shareBtn = card.querySelector('.share-btn');
@@ -1459,10 +1453,14 @@ Exactly 3 meals. Only use provided ingredients.${buildHealthInsightsInstruction(
       const s = data.stretch_meal;
       document.getElementById('stretchCard').innerHTML = `
         <div class="stretch-card">
-          <div class="stretch-header"><span style="font-size:20px">✨</span><span class="stretch-label">One more ingredient unlocks...</span></div>
-          <div class="stretch-title">${s.name}</div>
+          <div class="meal-card-header" style="background:linear-gradient(135deg,rgba(212,168,71,0.12) 0%,rgba(196,98,45,0.08) 100%);border-bottom-color:rgba(212,168,71,0.20);">
+            <div class="meal-emoji-box">✨</div>
+            <div class="meal-header-name">${s.name}<span>Your stretch suggestion — one extra item unlocks this</span></div>
+          </div>
+          <div class="meal-card-body">
           <p class="stretch-desc">${s.description}</p>
           <div class="stretch-item">🛒 Just add: ${s.one_extra_item}</div>
+          </div>
         </div>`;
     }
 
