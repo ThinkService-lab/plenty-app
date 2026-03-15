@@ -232,12 +232,77 @@
   .results-header h2 { font-family: 'Playfair Display', serif; font-size: 26px; color: var(--earth); margin-bottom: 6px; }
   .results-header p { font-size: 14px; color: var(--muted); }
 
-  .meal-card { background: white; border-radius: 20px; padding: 28px; margin-bottom: 16px; border: 1.5px solid #EDE8E0; box-shadow: 0 2px 16px rgba(61,43,31,0.05); animation: cardSlide 0.4s cubic-bezier(0.22,1,0.36,1) both; transition: box-shadow 0.2s, transform 0.2s; }
-  .meal-card:hover { box-shadow: 0 8px 32px rgba(61,43,31,0.1); transform: translateY(-2px); }
-  @keyframes cardSlide { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-  .meal-card:nth-child(2) { animation-delay: 0.08s; }
-  .meal-card:nth-child(3) { animation-delay: 0.16s; }
-  .meal-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+  /* ── Meal card reveal keyframes ────────────────── */
+  @keyframes cardReveal {
+    from { opacity: 0; transform: translateY(32px) scale(0.96); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  @keyframes headerReveal {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes emojiPop {
+    0%   { transform: scale(0) rotate(-15deg); }
+    70%  { transform: scale(1.15) rotate(5deg); }
+    100% { transform: scale(1) rotate(0deg); }
+  }
+  @keyframes affirmSlide {
+    from { opacity: 0; transform: translateX(-12px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+  @keyframes chipCascade {
+    from { opacity: 0; transform: translateY(8px) scale(0.9); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .meal-card { background: white; border-radius: 24px; margin-bottom: 20px; border: 1px solid rgba(237,232,224,0.8); box-shadow: var(--shadow-float); overflow: hidden; animation: cardReveal 0.6s var(--spring) both; transition: box-shadow 0.3s var(--ease-out-expo), transform 0.3s var(--ease-out-expo); }
+  .meal-card:hover { box-shadow: var(--shadow-hover); transform: translateY(-4px); }
+  .meal-card:nth-child(2) { animation-delay: 0.1s; }
+  .meal-card:nth-child(3) { animation-delay: 0.2s; }
+
+  /* ── Frosted-glass meal card header ─────────────── */
+  .meal-card-header {
+    position: relative;
+    padding: 20px 24px 16px;
+    background: linear-gradient(135deg, rgba(196,98,45,0.06) 0%, rgba(212,168,71,0.04) 100%);
+    border-bottom: 1px solid rgba(196,98,45,0.10);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    animation: headerReveal 0.4s var(--ease-out-expo) 0.1s both;
+  }
+  .meal-emoji-box {
+    width: 52px; height: 52px;
+    border-radius: 14px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid var(--glass-border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.55rem;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    animation: emojiPop 0.5s var(--spring) 0.2s both;
+  }
+  .meal-header-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--earth);
+    line-height: 1.28;
+  }
+  .meal-header-name span {
+    display: block;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.74rem;
+    font-weight: 400;
+    color: var(--muted);
+    margin-top: 3px;
+    letter-spacing: 0.02em;
+  }
+  .meal-card-body { padding: 20px 24px 24px; }
+  .meal-affirmation { font-style: italic; color: var(--terracotta); font-size: 14px; margin-bottom: 12px; font-family: 'Playfair Display', serif; animation: affirmSlide 0.4s var(--ease-out-expo) 0.3s both; }
+  .meal-top { display: none; }
   .meal-name { font-family: 'Playfair Display', serif; font-size: 21px; color: var(--earth); line-height: 1.2; flex: 1; margin-right: 16px; }
   .meal-badges { display: flex; flex-direction: column; gap: 4px; align-items: flex-end; flex-shrink: 0; }
   .badge { padding: 3px 10px; border-radius: 100px; font-size: 11px; font-weight: 500; white-space: nowrap; }
@@ -247,7 +312,6 @@
   .badge-hard { background: #FDE8E8; color: #C43D3D; }
   .health-badges-row { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px; }
   .health-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 100px; font-size: 11px; font-weight: 500; background: #FDE8E8; color: #8B2020; border: 1px solid #F5C6C6; }
-  .meal-affirmation { font-style: italic; color: var(--terracotta); font-size: 14px; margin-bottom: 12px; font-family: 'Playfair Display', serif; }
   .meal-description { font-size: 14px; color: #6B5E52; line-height: 1.7; margin-bottom: 16px; }
 
   .health-explanation { background: linear-gradient(135deg, #F0F7EE 0%, #EAF2E8 100%); border: 1.5px solid #C5D9BF; border-radius: 14px; padding: 16px 18px; margin-bottom: 16px; }
