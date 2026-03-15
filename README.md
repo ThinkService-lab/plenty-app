@@ -11,8 +11,14 @@ Plenty takes whatever ingredients you have and suggests 3 complete meals you can
 /
 ├── index.html                ← entire frontend (single file)
 ├── vercel.json               ← Vercel routing + function config
-├── google-apps-script.js     ← Google Apps Script (email + feedback → Sheets)
+├── privacy.html              ← Privacy Policy page
+├── terms.html                ← Terms of Use page
 ├── README.md                 ← this file
+├── CLAUDE.md                 ← AI assistant context for this codebase
+├── docs/
+│   └── superpowers/
+│       ├── specs/            ← design specs
+│       └── plans/            ← implementation plans
 └── api/
     ├── meals.js              ← Anthropic API proxy (main AI route)
     ├── subscribe.js          ← email capture → Google Sheets
@@ -48,18 +54,22 @@ Two tabs auto-created by the Apps Script:
 
 ---
 
-## Features (current baseline — v2)
+## Features (current — v3)
 - **Ingredient input** — type naturally ("2 eggs", "500g chicken", "rice") or use quick-add staple buttons
 - **Diet & skill profile** — diet preference, cooking skill level, servings
 - **Health conditions** — 8 selectable conditions (Diabetes, High Cholesterol, High Blood Pressure, Heart Disease, Kidney Disease, IBS, Weight Management, Anaemia) with tailored meal rules and "Why this is good for you" insights
 - **3 meal suggestions** — name, affirmation quote, description, time, difficulty, ingredient quantities, nutrition, cooking steps
-- **Gradient meal headers** — 3 rotating visual styles (terracotta, sage, earth) with emoji + time/difficulty badges
+- **Triadic colour meal headers** — 3 cards use colour-wheel triadic harmony (terracotta→gold, forest→sage green, plum→terracotta) with frosted-glass emoji box
+- **Staggered spring reveal** — 5-stage animation choreography per card (cardReveal → headerReveal → emojiPop → affirmSlide → chipCascade)
+- **Aurora loading state** — ambient colour blobs + dual concentric rings + shimmer skeleton cards replace the old spinner
+- **Focus mode results** — form hides on results display; only hero + meals shown. "← Try different ingredients" restores the form
 - **Stretch meal** — one extra cheap ingredient that unlocks a 4th meal idea
 - **Rate a meal** — 👍 / 👎 per meal; ratings influence next generation
 - **Share a meal** — WhatsApp, Facebook, download image (html2canvas), copy text; share image includes Plenty branding and URL
 - **Share Plenty nudge** — WhatsApp card at bottom of results to share the app with friends
 - **Feedback card** — 👍 / 👎 after results with optional text box; if user hasn't subscribed, email prompt appears inline; all saved to Google Sheet Feedback tab
 - **Email capture** — separate signup card → Google Sheet Subscribers tab; duplicate-safe
+- **Privacy Policy & Terms of Use** — linked in footer, served as static HTML pages
 
 ---
 
