@@ -93,11 +93,12 @@ export default async function handler(req, res) {
     });
 
     clearTimeout(timeout);
-    const data = await response.json();
 
     if (!response.ok) {
       return res.status(502).json({ error: 'Scan service unavailable. Please try again.' });
     }
+
+    const data = await response.json();
 
     if (data.content && Array.isArray(data.content)) {
       const rawText = data.content.map(b => b.text || '').join('');
