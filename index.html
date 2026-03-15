@@ -936,28 +936,28 @@
     <p class="input-hint">Type naturally — e.g. "rice", "2 eggs", "500g chicken" — quantity is optional</p>
     <div class="ingredient-input-row">
       <input type="text" class="ingredient-input" id="ingredientInput" placeholder='e.g. "rice", "2 eggs", "500g chicken"...' />
-      <button class="add-btn" onclick="toggleScanOptions()" title="Scan photo" style="font-size:18px;">📷</button>
+      <button class="add-btn" onclick="toggleScanOptions()" title="Scan photo" aria-label="Scan photo" aria-expanded="false" aria-controls="scanOptions" style="font-size:18px;">📷</button>
       <button class="add-btn" onclick="addIngredient()" title="Add">+</button>
     </div>
-    <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none" onchange="handleScanFile(this)">
-    <input type="file" id="galleryInput" accept="image/*" style="display:none" onchange="handleScanFile(this)">
+    <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none" aria-hidden="true" onchange="handleScanFile(this)">
+    <input type="file" id="galleryInput" accept="image/*" style="display:none" aria-hidden="true" onchange="handleScanFile(this)">
     <div id="scanOptions" class="scan-options">
       <button class="scan-option-btn" onclick="triggerCamera()">📷 Take photo</button>
       <button class="scan-option-btn" onclick="triggerGallery()">🖼 Upload from gallery</button>
     </div>
-    <div id="scanState" class="scan-state">
+    <div id="scanState" class="scan-state" aria-live="polite" aria-atomic="true">
       <span class="scan-spinner"></span>
       <span>Scanning your ingredients…</span>
     </div>
-    <div id="scanConfirm" class="scan-confirm">
-      <p class="scan-confirm-title">Found in your photo</p>
-      <ul id="scanResults" class="scan-result-list"></ul>
+    <div id="scanConfirm" class="scan-confirm" aria-live="polite" aria-atomic="true">
+      <p class="scan-confirm-title" id="scanConfirmTitle">Found in your photo</p>
+      <ul id="scanResults" class="scan-result-list" aria-labelledby="scanConfirmTitle"></ul>
       <div class="scan-confirm-actions">
         <button id="scanAddBtn" class="scan-add-btn" onclick="addScannedIngredients()">Add 0 ingredients</button>
         <button class="scan-cancel-btn" onclick="dismissScan()">Cancel</button>
       </div>
     </div>
-    <div id="scanError" class="scan-error">
+    <div id="scanError" class="scan-error" aria-live="assertive" aria-atomic="true">
       Couldn't identify ingredients — please try manually
     </div>
     <div class="tags-container" id="tagsContainer"></div>
