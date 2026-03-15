@@ -28,13 +28,13 @@ Allow users to photograph their fridge, pantry, or countertop and have Claude Vi
 3. User selects an image via the appropriate hidden `<input type="file">`
    - Camera input uses `capture="environment"` (rear camera on mobile)
    - Gallery input has no capture attribute (file picker on desktop, gallery on mobile)
-4. Frontend resizes the image to max 800px on either dimension using the Canvas API, then converts to base64
+4. Frontend resizes the image to max 800px on either dimension using the Canvas API, encodes via `canvas.toDataURL('image/jpeg')` — always outputs JPEG regardless of original format, so `mimeType` is always `"image/jpeg"`
 5. Frontend POSTs `{ image: "<base64>", mimeType: "image/jpeg" }` to `/api/scan`
 6. `api/scan.js` validates payload, checks rate limit, then calls Claude Haiku vision
 7. Claude returns JSON: `{"ingredients": [{"name": "chicken", "quantity": "500g"}, ...]}`
 8. Frontend renders the confirmation panel with pre-ticked checkboxes
-9. User reviews, unticks unwanted items, clicks **"Add [n] ingredients"**
-10. Ticked ingredients merge into the existing tag list via `window.quickAdd()` (duplicates skipped automatically), each with `tagPop` animation
+9. User reviews, unticks unwanted items, clicks **"Add [n] ingredients"** (button label updated dynamically by `handleScanFile()` after scan result arrives)
+10. Ticked ingredients merge into the existing tag list — `addScannedIngredients()` lowercases each name before calling `window.quickAdd(name.toLowerCase(), qty)`, each with `tagPop` animation
 11. Camera options and confirmation panel dismiss
 
 ---
@@ -76,7 +76,7 @@ Slides in below the input row after scan completes:
   <p class="scan-confirm-title">Found in your photo</p>
   <div id="scanResults"></div>
   <div class="scan-confirm-actions">
-    <button id="scanAddBtn" onclick="addScannedIngredients()">Add ingredients</button>
+    <button id="scanAddBtn" onclick="addScannedIngredients()">Add 0 ingredients</button>
     <button onclick="dismissScan()">Cancel</button>
   </div>
 </div>
@@ -110,7 +110,18 @@ Apply the same patterns as `api/meals.js`:
 
 ### Claude Vision call
 - Model: `claude-haiku-4-5-20251001` (same as meals — within Vercel 10s timeout; confirmed to support vision content blocks)
-- Message type: user message with image content block (`{ type: "image", source: { type: "base64", media_type, data } }`) followed by text prompt
+- Message structure — the `content` field is an **array** (unlike `meals.js` which uses a string), containing an image block followed by a text block:
+  ```json
+  {
+    "messages": [{
+      "role": "user",
+      "content": [
+        { "type": "image", "source": { "type": "base64", "media_type": "image/jpeg", "data": "<base64>" } },
+        { "type": "text", "text": "<prompt>" }
+      ]
+    }]
+  }
+  ```
 - Prompt:
   ```
   Look at this image and identify all visible food ingredients.
@@ -153,8 +164,10 @@ Programmatically clicks the appropriate hidden file input.
 ### Image resize helper (internal, not on window)
 ```javascript
 function resizeImage(file, maxPx = 800) {
-  // Returns a Promise resolving to { base64, mimeType }
+  // Returns a Promise resolving to { base64, mimeType: 'image/jpeg' }
   // Uses Canvas API to resize to maxPx on longest dimension
+  // Always encodes via canvas.toDataURL('image/jpeg') — normalises all formats to JPEG
+  // mimeType in the returned object is always 'image/jpeg' regardless of original file type
 }
 ```
 
@@ -162,7 +175,7 @@ function resizeImage(file, maxPx = 800) {
 Called by the file input's `onchange`. Reads the file, resizes it, shows scan state, POSTs to `/api/scan`, then either shows confirmation panel or triggers error fallback.
 
 ### `window.addScannedIngredients()`
-Reads checked items from the confirmation panel. For each checked item, calls `window.quickAdd(name, qty)` — the existing function that handles adding ingredients, deduplication (case-insensitive via `parseIngredient()`), tag rendering, and button state update. No separate duplicate check needed — `quickAdd()` already handles it. Calls `dismissScan()` after.
+Reads checked items from the confirmation panel. For each checked item, **lowercases the name** then calls `window.quickAdd(name.toLowerCase(), qty)`. The `quickAdd()` function performs a case-sensitive `===` check against existing ingredient names — it does NOT call `parseIngredient()` internally on the scan path. Lowercasing before the call ensures scanned names like `"Chicken"` don't create duplicates alongside existing `"chicken"` entries. Calls `dismissScan()` after.
 
 ### `window.dismissScan()`
 Hides scan options, scan state, confirmation panel, and error state. Resets the file input values to allow re-scanning the same image:
@@ -175,7 +188,14 @@ document.getElementById('galleryInput').value = '';
 
 ## Duplicate Detection
 
-Handled automatically by `window.quickAdd()`. It calls `parseIngredient()` which lowercases the name, then checks `ingredients.find(i => i.name === name)`. No separate pre-filter should be written — doing so would create divergent logic.
+`window.quickAdd()` checks `ingredients.find(i => i.name === name)` — a **case-sensitive** equality check on the name as passed in. It does NOT call `parseIngredient()` on the scan path (that function is only invoked inside `window.addIngredient`, the manual text input path).
+
+Therefore `addScannedIngredients()` must lowercase Claude's output before calling `quickAdd()`:
+```javascript
+window.quickAdd(name.toLowerCase(), qty);
+```
+
+No other pre-filter or deduplication logic should be written — this one-line normalisation is sufficient.
 
 ---
 
