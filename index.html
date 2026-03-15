@@ -187,12 +187,44 @@
   .generate-btn:active:not(:disabled) { transform: scale(0.97); }
   .generate-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-  .loading-state { text-align: center; padding: 48px 0; display: none; }
+  /* ── Loading State ──────────────────────────────── */
+  .loading-state { text-align: center; padding: 48px 0 64px; display: none; position: relative; overflow: hidden; }
   .loading-state.active { display: block; }
-  .loading-spinner { width: 48px; height: 48px; border: 3px solid var(--light-sage); border-top-color: var(--terracotta); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 20px; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .loading-text { font-family: 'Playfair Display', serif; font-style: italic; font-size: 18px; color: var(--muted); }
-  .loading-subtext { font-size: 13px; color: #BFB8AE; margin-top: 6px; }
+
+  .aurora-container { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+  .aurora-blob { position: absolute; border-radius: 50%; filter: blur(60px); opacity: 0.32; }
+  .aurora-blob-1 { width: 280px; height: 280px; background: radial-gradient(circle, #C4622D 0%, transparent 70%); top: -70px; left: -50px; animation: auroraFloat1 6s ease-in-out infinite; }
+  .aurora-blob-2 { width: 220px; height: 220px; background: radial-gradient(circle, #D4A847 0%, transparent 70%); top: 10px; right: -30px; animation: auroraFloat2 7s ease-in-out infinite; }
+  .aurora-blob-3 { width: 180px; height: 180px; background: radial-gradient(circle, #7A2D10 0%, transparent 70%); bottom: 0; left: 42%; animation: auroraFloat1 8s ease-in-out infinite reverse; }
+  @keyframes auroraFloat1 {
+    0%, 100% { transform: translate(0,0) scale(1); }
+    33%  { transform: translate(28px,-18px) scale(1.1); }
+    66%  { transform: translate(-18px,14px) scale(0.95); }
+  }
+  @keyframes auroraFloat2 {
+    0%, 100% { transform: translate(0,0) scale(1); }
+    50%  { transform: translate(-22px,18px) scale(1.08); }
+  }
+
+  .loading-rings { position: relative; display: inline-block; width: 72px; height: 72px; margin-bottom: 22px; }
+  .ring { position: absolute; border-radius: 50%; border: 2.5px solid transparent; animation: ringRotate 2s linear infinite; }
+  .ring-outer { inset: 0; border-top-color: #C4622D; border-right-color: rgba(196,98,45,0.28); }
+  .ring-inner { inset: 11px; border-top-color: #D4A847; border-right-color: rgba(212,168,71,0.28); animation-direction: reverse; animation-duration: 1.4s; }
+  @keyframes ringRotate { to { transform: rotate(360deg); } }
+
+  .loading-text { font-family: 'Playfair Display', serif; font-style: italic; font-size: 17px; color: var(--muted); margin-bottom: 28px; position: relative; }
+
+  .skeleton-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 18px; max-width: 900px; margin: 0 auto; position: relative; }
+  .skeleton-card { background: #fff; border-radius: 18px; padding: 22px; box-shadow: var(--shadow-card); }
+  @keyframes skeletonShimmer {
+    0%   { background-position: -400px 0; }
+    100% { background-position: 400px 0; }
+  }
+  .skeleton-line { height: 13px; border-radius: 7px; background: linear-gradient(90deg, #f0e8df 25%, #faf5f0 50%, #f0e8df 75%); background-size: 800px 100%; animation: skeletonShimmer 1.6s ease-in-out infinite; margin-bottom: 11px; }
+  .skeleton-title { height: 20px; width: 60%; }
+  .skeleton-sub { height: 11px; width: 38%; }
+  .skeleton-body { height: 11px; width: 88%; }
+  .skeleton-body.short { width: 65%; }
 
   .results-section { display: none; }
   .results-section.active { display: block; }
@@ -823,9 +855,36 @@
   </button>
 
   <div class="loading-state" id="loadingState">
-    <div class="loading-spinner"></div>
-    <p class="loading-text">Finding your possibilities...</p>
-    <p class="loading-subtext">Turning what you have into something wonderful</p>
+    <div class="aurora-container">
+      <div class="aurora-blob aurora-blob-1"></div>
+      <div class="aurora-blob aurora-blob-2"></div>
+      <div class="aurora-blob aurora-blob-3"></div>
+    </div>
+    <div class="loading-rings">
+      <div class="ring ring-outer"></div>
+      <div class="ring ring-inner"></div>
+    </div>
+    <p class="loading-text">Crafting your perfect meals…</p>
+    <div class="skeleton-grid">
+      <div class="skeleton-card">
+        <div class="skeleton-line skeleton-title"></div>
+        <div class="skeleton-line skeleton-sub"></div>
+        <div class="skeleton-line skeleton-body"></div>
+        <div class="skeleton-line skeleton-body short"></div>
+      </div>
+      <div class="skeleton-card">
+        <div class="skeleton-line skeleton-title"></div>
+        <div class="skeleton-line skeleton-sub"></div>
+        <div class="skeleton-line skeleton-body"></div>
+        <div class="skeleton-line skeleton-body short"></div>
+      </div>
+      <div class="skeleton-card">
+        <div class="skeleton-line skeleton-title"></div>
+        <div class="skeleton-line skeleton-sub"></div>
+        <div class="skeleton-line skeleton-body"></div>
+        <div class="skeleton-line skeleton-body short"></div>
+      </div>
+    </div>
   </div>
 
   <div class="error-state" id="errorState">
