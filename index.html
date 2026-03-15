@@ -936,7 +936,29 @@
     <p class="input-hint">Type naturally — e.g. "rice", "2 eggs", "500g chicken" — quantity is optional</p>
     <div class="ingredient-input-row">
       <input type="text" class="ingredient-input" id="ingredientInput" placeholder='e.g. "rice", "2 eggs", "500g chicken"...' />
+      <button class="add-btn" onclick="toggleScanOptions()" title="Scan photo" style="font-size:18px;">📷</button>
       <button class="add-btn" onclick="addIngredient()" title="Add">+</button>
+    </div>
+    <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none" onchange="handleScanFile(this)">
+    <input type="file" id="galleryInput" accept="image/*" style="display:none" onchange="handleScanFile(this)">
+    <div id="scanOptions" class="scan-options">
+      <button class="scan-option-btn" onclick="triggerCamera()">📷 Take photo</button>
+      <button class="scan-option-btn" onclick="triggerGallery()">🖼 Upload from gallery</button>
+    </div>
+    <div id="scanState" class="scan-state">
+      <span class="scan-spinner"></span>
+      <span>Scanning your ingredients…</span>
+    </div>
+    <div id="scanConfirm" class="scan-confirm">
+      <p class="scan-confirm-title">Found in your photo</p>
+      <ul id="scanResults" class="scan-result-list"></ul>
+      <div class="scan-confirm-actions">
+        <button id="scanAddBtn" class="scan-add-btn" onclick="addScannedIngredients()">Add 0 ingredients</button>
+        <button class="scan-cancel-btn" onclick="dismissScan()">Cancel</button>
+      </div>
+    </div>
+    <div id="scanError" class="scan-error">
+      Couldn't identify ingredients — please try manually
     </div>
     <div class="tags-container" id="tagsContainer"></div>
     <div class="quick-add">
