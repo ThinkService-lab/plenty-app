@@ -1347,7 +1347,7 @@ Cuisine: ${cuisine === 'any' ? 'any cuisine' : cuisine} | Diet: ${diet} | Skill:
 Respond ONLY in this JSON format, no markdown:
 {"confidence_message":"warm message","meal_count_celebration":"3 meals","meals":[{"name":"Name","affirmation":"Short line","description":"One sentence.","time_minutes":20,"difficulty":"easy","ingredients_used":["item"],"health_badges":[],"health_insights":[],"nutrition":{"calories":"300 kcal","protein":"15g","carbs":"30g","fat":"10g"},"steps":["Step 1","Step 2","Step 3"]}],"stretch_meal":{"name":"Name","one_extra_item":"item","description":"One sentence."}}
 
-Exactly 3 meals. Only use provided ingredients.${buildHealthInsightsInstruction()}`;
+Exactly 3 meals. Only use provided ingredients. If the chosen cuisine does not naturally fit the ingredients, suggest the closest honest adaptation and name it clearly (e.g. "African-inspired pasta bake" not "Nigerian jollof").${buildHealthInsightsInstruction()}`;
 
     try {
       const response = await fetch('/api/meals', {
