@@ -21,6 +21,7 @@ Plenty takes whatever ingredients you have and suggests 3 complete meals you can
 │       └── plans/            ← implementation plans
 └── api/
     ├── meals.js              ← Anthropic API proxy (main AI route)
+    ├── scan.js               ← Claude Haiku vision: photo → ingredient list
     ├── subscribe.js          ← email capture → Google Sheets
     └── photo.js              ← unused (gradient placeholders used instead)
 ```
@@ -55,6 +56,7 @@ Two tabs auto-created by the Apps Script:
 ---
 
 ## Features (current — v3)
+- **Ingredient photo scan** — tap 📷 to photograph a fridge or countertop; Claude Haiku vision identifies ingredients and presents a pre-ticked confirmation panel to merge into the list
 - **Ingredient input** — type naturally ("2 eggs", "500g chicken", "rice") or use quick-add staple buttons
 - **Diet & skill profile** — diet preference, cooking skill level, servings
 - **Health conditions** — 8 selectable conditions (Diabetes, High Cholesterol, High Blood Pressure, Heart Disease, Kidney Disease, IBS, Weight Management, Anaemia) with tailored meal rules and "Why this is good for you" insights
@@ -78,6 +80,9 @@ Two tabs auto-created by the Apps Script:
 - **No Unsplash/Pexels photos** — gradient placeholders used instead (real food APIs returned irrelevant images for African/diverse dishes)
 - **All onclick handlers exposed as `window.X`** — required because functions are defined inside a script block, not globally. Always add `window.X =` for any new function called via onclick
 - **meals.js cleans control characters with charCodeAt()** — regex with literal newlines in the file was corrupting Vercel compilation silently
+- **sanitizeString allowlist includes JSON schema chars** — `{`, `}`, `[`, `]`, `"` must be allowed or the JSON schema in the AI prompt gets stripped, causing Claude to return plain strings instead of arrays
+- **scan.js uses content array not string** — Claude vision API requires `content: [imageBlock, textBlock]`; unlike meals.js which passes `content` as a plain string
+- **Canvas resizeImage strips data-URI prefix** — `canvas.toDataURL('image/jpeg').split(',')[1]`; the Claude API needs raw base64, not the `data:image/jpeg;base64,...` prefix
 - **claude-haiku not claude-sonnet** — faster, cheaper, avoids timeout on Vercel free tier
 - **max_tokens: 1800** — increased from 1200 to handle health condition prompts without truncation; passed from frontend so meals.js stays flexible
 - **Feedback goes direct to Sheets URL** — no Vercel function needed, frontend calls Google Apps Script directly with query params
@@ -99,7 +104,7 @@ Two tabs auto-created by the Apps Script:
 - [ ] First TikTok/Instagram content video
 
 ### Round 2 — wow factor
-- [ ] Fridge photo scan
+- [x] Fridge photo scan
 - [ ] Save favourite meals
 - [ ] Shopping list generator
 

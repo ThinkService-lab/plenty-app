@@ -14,8 +14,9 @@ Plenty is a single-page AI meal suggestion app. Users enter ingredients they hav
 
 **The entire frontend lives in `index.html`.** There is no build step, no framework, no bundler. Every CSS rule, HTML element, and JS function is in this one file. Do not split it.
 
-The backend is three Vercel serverless functions in `/api/`:
+The backend is four Vercel serverless functions in `/api/`:
 - `meals.js` — proxies the Anthropic API call
+- `scan.js` — accepts a base64 image, calls Claude Haiku vision, returns identified ingredients as JSON
 - `subscribe.js` — saves emails to Google Sheets
 - `photo.js` — unused, leave it
 
@@ -86,7 +87,34 @@ All four are injected into the AI prompt as: `Cuisine: X | Diet: X | Skill: X | 
 
 ---
 
+## Ingredient photo scan
+
+Users tap the 📷 button in the ingredient input row to scan a photo of their fridge or countertop.
+
+**Flow:** camera button → scan options (Take photo / Upload from gallery) → hidden `<input type="file">` → `handleScanFile()` → resize via Canvas API → POST to `/api/scan` → confirmation panel with pre-ticked checkboxes → `addScannedIngredients()` → merged into tag list.
+
+**Key scan JS functions (all on `window.*`):**
+- `window.toggleScanOptions()` — shows/hides the two scan option buttons; blocked while `isScanning === true`
+- `window.handleScanFile(input)` — orchestrates resize → API call → confirmation panel render
+- `window.addScannedIngredients()` — reads checked items, lowercases names, calls `window.quickAdd(name, qty)` for each
+- `window.dismissScan()` — hides all scan UI, resets file input values
+
+**`resizeImage(file, maxPx)`** — internal (not on window). Uses Canvas API to resize to max 800px on longest dimension. Always encodes as JPEG via `canvas.toDataURL('image/jpeg')`. Strips the data-URI prefix before returning: `dataUri.split(',')[1]` — the Claude API needs raw base64, not a data-URI string.
+
+**`isScanning` flag** — set `true` at the start of `handleScanFile`, `false` on every exit path (success, error, null result). Prevents toggling the scan options while a scan is in progress.
+
+**`api/scan.js`** — mirrors `api/meals.js` for rate limiting and CORS. Accepts `{ image: "<base64>", mimeType: "image/jpeg" }`. The Claude API `content` field is an **array** (`[imageBlock, textBlock]`), unlike `meals.js` which passes a string. Returns `{ ingredients: [{name, quantity?}, ...] }`.
+
+**Duplicate prevention** — `window.quickAdd()` does a **case-sensitive** `===` check on ingredient names. `addScannedIngredients()` lowercases all names from Claude before calling `quickAdd()` — this is intentional and must not be removed.
+
+---
+
+---
+
 ## What NOT to change without care
+
+### `sanitizeString` allowlist in `api/meals.js`
+The allowlist regex includes `{`, `}`, `[`, `]`, `"`, `'`, `!`, `?`, `#`, `@` deliberately. These are needed so that the JSON schema instructions in the AI prompt survive sanitisation intact. If these characters are stripped, Claude receives a garbled schema and returns `ingredients_used` and `steps` as plain strings instead of arrays — causing `.map is not a function` errors in `renderResults`. The HTML-strip step before the allowlist already handles XSS.
 
 ### `charCodeAt()` control character cleaning in `api/meals.js`
 The AI response is JSON. Claude occasionally returns invisible control characters (`\x00`–`\x1F`) inside strings that break `JSON.parse()`. The normal fix is a regex like `/[\x00-\x1F]/g` — but that regex, written with literal characters in the file, was **silently corrupting Vercel's compilation** with no error message. The workaround is a character-by-character loop checking `charCodeAt(i) < 32`. It looks verbose but it is a real Vercel edge case. Do not replace it with a regex.
