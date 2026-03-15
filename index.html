@@ -368,6 +368,28 @@
   .error-state.active { display: block; }
   .error-state p { color: #C43D3D; font-size: 14px; }
 
+  /* ── Ingredient photo scan ────────────────────────── */
+  .scan-options { display: none; gap: 8px; margin-bottom: 4px; flex-wrap: wrap; padding: 4px 0; }
+  .scan-options.visible { display: flex; }
+  .scan-option-btn { background: var(--warm-white); border: 1.5px solid var(--terracotta); border-radius: 100px; padding: 8px 16px; font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--terracotta); cursor: pointer; transition: all 0.2s; }
+  .scan-option-btn:hover { background: var(--terracotta); color: white; }
+  .scan-state { display: none; align-items: center; gap: 10px; padding: 8px 0; color: #8A7560; font-style: italic; font-size: 14px; }
+  .scan-state.visible { display: flex; }
+  .scan-spinner { width: 16px; height: 16px; border-radius: 50%; border: 2px solid rgba(196,98,45,0.2); border-top-color: var(--terracotta); animation: ringRotate 0.8s linear infinite; flex-shrink: 0; }
+  .scan-confirm { display: none; background: var(--warm-white); border: 1.5px solid #E0D8CE; border-radius: 16px; padding: 18px 20px; margin-top: 8px; box-shadow: var(--shadow-card); animation: tagPop 0.3s var(--spring) both; }
+  .scan-confirm.visible { display: block; }
+  .scan-confirm-title { font-weight: 600; font-size: 14px; color: var(--earth); margin: 0 0 12px; }
+  .scan-result-list { list-style: none; padding: 0; margin: 0 0 14px; display: flex; flex-direction: column; gap: 8px; }
+  .scan-result-item label { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--earth); cursor: pointer; }
+  .scan-result-item input[type="checkbox"] { accent-color: var(--terracotta); width: 16px; height: 16px; cursor: pointer; flex-shrink: 0; }
+  .scan-confirm-actions { display: flex; gap: 8px; }
+  .scan-add-btn { background: var(--earth); color: var(--cream); border: none; border-radius: 12px; padding: 10px 18px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+  .scan-add-btn:hover { background: var(--terracotta); }
+  .scan-cancel-btn { background: transparent; border: 1.5px solid #DDD5C8; border-radius: 12px; padding: 10px 14px; font-family: 'DM Sans', sans-serif; font-size: 14px; color: #8A7560; cursor: pointer; transition: all 0.2s; }
+  .scan-cancel-btn:hover { border-color: var(--terracotta); color: var(--terracotta); }
+  .scan-error { display: none; background: #FDE8E8; border: 1.5px solid #F5C6C6; border-radius: 12px; padding: 10px 16px; margin-top: 8px; font-size: 13px; color: #C43D3D; }
+  .scan-error.visible { display: block; }
+
 
   /* Meal card placeholder header */
   .meal-placeholder {
