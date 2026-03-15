@@ -31,7 +31,85 @@
   body { background-color: var(--cream); color: var(--earth); font-family: 'DM Sans', sans-serif; min-height: 100vh; overflow-x: hidden; }
   body::before { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E"); pointer-events: none; z-index: 0; }
   .container { max-width: 780px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
-  header { padding: 48px 0 32px; text-align: center; }
+  /* ── Hero ───────────────────────────────────────── */
+  .hero {
+    background: var(--hero-gradient);
+    padding: 72px 20px 96px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    margin: -0px -24px 0;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 40% at 20% 50%, rgba(196,98,45,0.25) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 60% at 80% 30%, rgba(212,168,71,0.18) 0%, transparent 55%);
+    pointer-events: none;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 30% 50% at 60% 70%, rgba(196,98,45,0.06) 0%, transparent 50%),
+      radial-gradient(ellipse 50% 30% at 30% 20%, rgba(212,168,71,0.04) 0%, transparent 50%);
+    pointer-events: none;
+  }
+  .hero-content { position: relative; z-index: 1; max-width: 600px; margin: 0 auto; }
+  .hero-eyebrow {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(212,168,71,0.85);
+    margin-bottom: 14px;
+  }
+  .hero-headline {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.2rem, 6vw, 3.6rem);
+    font-weight: 800;
+    line-height: 1.12;
+    color: #FFFBF5;
+    margin-bottom: 18px;
+  }
+  .hero-headline em { font-style: italic; color: #D4A847; }
+  .hero-sub {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1rem;
+    color: rgba(255,251,245,0.68);
+    max-width: 400px;
+    margin: 0 auto;
+    line-height: 1.65;
+  }
+
+  /* ── Stacked input wrapper ───────────────────────── */
+  .input-stack-wrapper {
+    position: relative;
+    margin-top: -52px;
+    z-index: 10;
+  }
+  .input-stack-wrapper::before {
+    content: '';
+    position: absolute;
+    inset: 8px 12px -8px;
+    background: #fff;
+    border-radius: 28px;
+    opacity: 0.45;
+    box-shadow: var(--shadow-card);
+  }
+  .input-stack-wrapper::after {
+    content: '';
+    position: absolute;
+    inset: 4px 6px -4px;
+    background: #fff;
+    border-radius: 26px;
+    opacity: 0.65;
+    box-shadow: var(--shadow-card);
+  }
   .logo-mark { display: inline-flex; align-items: center; gap: 10px; margin-bottom: 20px; }
   .logo-icon { width: 42px; height: 42px; background: var(--terracotta); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; }
   .logo-text { font-family: 'Playfair Display', serif; font-size: 28px; color: var(--earth); letter-spacing: -0.5px; }
@@ -648,13 +726,17 @@
 <body>
 <div class="container">
 
-  <header>
-    <div class="logo-mark">
-      <div class="logo-icon">🌿</div>
-      <span class="logo-text">Plenty</span>
+  <div class="hero">
+    <div class="hero-content">
+      <div class="logo-mark" style="justify-content:center;margin-bottom:20px;">
+        <div class="logo-icon">🌿</div>
+        <span class="logo-text" style="color:#FFFBF5;">Plenty</span>
+      </div>
+      <p class="hero-eyebrow">Your personal meal planner</p>
+      <h1 class="hero-headline">What will you<br><em>eat today?</em></h1>
+      <p class="hero-sub">Tell us what's in your kitchen and we'll craft personalised meal suggestions just for you.</p>
     </div>
-    <p class="tagline">You already have everything you need to eat well tonight.</p>
-  </header>
+  </div>
 
   <div class="profile-strip">
     <select class="pill-select" id="dietPref">
@@ -696,6 +778,7 @@
     </div>
   </div>
 
+  <div class="input-stack-wrapper">
   <div class="input-card">
     <span class="input-label">What's in your kitchen right now?</span>
     <p class="input-hint">Type naturally — e.g. "rice", "2 eggs", "500g chicken" — quantity is optional</p>
@@ -724,6 +807,7 @@
       </div>
     </div>
   </div>
+  </div><!-- /.input-stack-wrapper -->
 
   <button class="generate-btn" id="generateBtn" disabled>
     <span>✨</span> Show me what I can make
