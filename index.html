@@ -314,7 +314,8 @@
   .health-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 100px; font-size: 11px; font-weight: 500; background: #FDE8E8; color: #8B2020; border: 1px solid #F5C6C6; }
   .meal-description { font-size: 14px; color: #6B5E52; line-height: 1.7; margin-bottom: 16px; }
 
-  .health-explanation { background: linear-gradient(135deg, #F0F7EE 0%, #EAF2E8 100%); border: 1.5px solid #C5D9BF; border-radius: 14px; padding: 16px 18px; margin-bottom: 16px; }
+  .health-explanation { background: linear-gradient(135deg, #F0F7EE 0%, #EAF2E8 100%); border: 1.5px solid #C5D9BF; border-radius: 14px; padding: 16px 18px; margin-bottom: 16px; box-shadow: var(--shadow-card); transition: box-shadow 0.25s var(--ease-out-expo); }
+  .health-explanation:hover { box-shadow: var(--shadow-float); }
   .health-explanation-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
   .health-explanation-title { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--sage); }
   .health-insight-list { display: flex; flex-direction: column; gap: 8px; }
@@ -343,14 +344,15 @@
   .step { display: flex; gap: 12px; margin-bottom: 10px; font-size: 14px; color: #6B5E52; line-height: 1.6; }
   .step-num { width: 22px; height: 22px; background: var(--terracotta); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; flex-shrink: 0; margin-top: 2px; }
 
-  .stretch-card { background: linear-gradient(135deg, #FEF3E2 0%, #FDF8F0 100%); border: 1.5px solid #EDD9B0; border-radius: 20px; padding: 24px; margin-top: 8px; margin-bottom: 24px; animation: cardSlide 0.4s 0.4s cubic-bezier(0.22,1,0.36,1) both; }
+  .stretch-card { background: linear-gradient(135deg, #FEF3E2 0%, #FDF8F0 100%); border: 1px solid rgba(237,217,176,0.8); border-radius: 24px; overflow: hidden; margin-top: 8px; margin-bottom: 24px; animation: cardReveal 0.6s var(--spring) 0.25s both; box-shadow: var(--shadow-float); transition: box-shadow 0.3s var(--ease-out-expo), transform 0.3s var(--ease-out-expo); }
+  .stretch-card:hover { box-shadow: var(--shadow-hover); transform: translateY(-3px); }
   .stretch-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
   .stretch-label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 1px; color: var(--gold); }
   .stretch-title { font-family: 'Playfair Display', serif; font-size: 18px; color: var(--earth); margin-bottom: 6px; }
   .stretch-desc { font-size: 13px; color: #8A7040; line-height: 1.6; }
   .stretch-item { display: inline-flex; align-items: center; gap: 6px; background: white; border: 1px solid #EDD9B0; border-radius: 100px; padding: 4px 12px; font-size: 13px; color: var(--earth); margin-top: 10px; font-weight: 500; }
 
-  .confidence-banner { background: var(--earth); color: var(--cream); border-radius: 16px; padding: 20px 24px; text-align: center; margin-bottom: 24px; animation: cardSlide 0.4s 0.5s cubic-bezier(0.22,1,0.36,1) both; }
+  .confidence-banner { background: var(--earth); color: var(--cream); border-radius: 20px; padding: 24px 28px; text-align: center; margin-bottom: 24px; animation: cardReveal 0.6s var(--spring) 0.05s both; box-shadow: var(--shadow-float); }
   .confidence-banner .big-num { font-family: 'Playfair Display', serif; font-size: 42px; color: var(--gold); line-height: 1; margin-bottom: 4px; }
   .confidence-banner p { font-size: 14px; opacity: 0.8; }
   .try-again-btn { width: 100%; background: transparent; border: 1.5px solid #DDD5C8; border-radius: 12px; padding: 14px; font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--muted); cursor: pointer; transition: all 0.2s; margin-bottom: 48px; }
