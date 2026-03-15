@@ -93,6 +93,7 @@ Two tabs auto-created by the Apps Script:
 
 ## Roadmap
 ### Next (Round 1 — get paying users)
+- [x] Cuisine choice selector — narrows AI suggestions to a specific cuisine (African, Asian, Mediterranean, etc.)
 - [ ] Free vs paid usage limit (3 meals/day free → $4.99–7.99/month)
 - [ ] First TikTok/Instagram content video
 

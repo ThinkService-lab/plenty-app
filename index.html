@@ -854,6 +854,21 @@
 
   <div id="formSection">
   <div class="profile-strip">
+    <select class="pill-select" id="cuisinePref">
+      <option value="any">🌍 Any cuisine</option>
+      <option value="african">🌍 African</option>
+      <option value="west-african">🥘 West African</option>
+      <option value="east-african">🫕 East African</option>
+      <option value="asian">🍜 Asian</option>
+      <option value="south-asian">🍛 South Asian</option>
+      <option value="east-asian">🍱 East Asian</option>
+      <option value="mediterranean">🫒 Mediterranean</option>
+      <option value="middle-eastern">🧆 Middle Eastern</option>
+      <option value="latin-american">🌮 Latin American</option>
+      <option value="european">🥐 European</option>
+      <option value="caribbean">🍹 Caribbean</option>
+      <option value="american">🍔 American</option>
+    </select>
     <select class="pill-select" id="dietPref">
       <option value="none">🍽️ No restrictions</option>
       <option value="vegetarian">🥦 Vegetarian</option>
@@ -1306,6 +1321,7 @@ https://plenty-app-nine.vercel.app`;
 
   // ── Generate meals ──
   window.generateMeals = async function() {
+    const cuisine = document.getElementById('cuisinePref').value;
     const diet = document.getElementById('dietPref').value;
     const skill = document.getElementById('skillLevel').value;
     const servings = document.getElementById('servings').value;
@@ -1326,7 +1342,7 @@ https://plenty-app-nine.vercel.app`;
     const prompt = `Plenty AI chef. Empowering, abundant tone. Never say limited/few/only.
 
 Ingredients: ${ingList}
-Diet: ${diet} | Skill: ${skill} | Servings: ${servings}${buildHealthRules()}${buildRatingContext()}
+Cuisine: ${cuisine === 'any' ? 'any cuisine' : cuisine} | Diet: ${diet} | Skill: ${skill} | Servings: ${servings}${buildHealthRules()}${buildRatingContext()}
 
 Respond ONLY in this JSON format, no markdown:
 {"confidence_message":"warm message","meal_count_celebration":"3 meals","meals":[{"name":"Name","affirmation":"Short line","description":"One sentence.","time_minutes":20,"difficulty":"easy","ingredients_used":["item"],"health_badges":[],"health_insights":[],"nutrition":{"calories":"300 kcal","protein":"15g","carbs":"30g","fat":"10g"},"steps":["Step 1","Step 2","Step 3"]}],"stretch_meal":{"name":"Name","one_extra_item":"item","description":"One sentence."}}
