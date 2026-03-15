@@ -134,7 +134,9 @@ Apply the same patterns as `api/meals.js`:
 - `max_tokens: 500` (20+ ingredient dense fridge shots need headroom beyond 300)
 
 ### Response parsing
-- Apply the same `charCodeAt`-based control character cleaning used in `api/meals.js` before calling `JSON.parse()` — same Vercel compilation risk applies here
+- Apply the same response cleaning pattern used in `api/meals.js` before calling `JSON.parse()` — same Vercel compilation risk applies here. The pattern has two steps:
+  1. **Brace extraction** — `rawText.slice(rawText.indexOf('{'), rawText.lastIndexOf('}') + 1)` to strip any surrounding prose
+  2. **charCodeAt cleaning** — strip control characters (`charCode < 32`, except `\n \r \t`) character by character
 - Return parsed JSON directly to frontend
 
 ### Response
@@ -167,6 +169,9 @@ function resizeImage(file, maxPx = 800) {
   // Returns a Promise resolving to { base64, mimeType: 'image/jpeg' }
   // Uses Canvas API to resize to maxPx on longest dimension
   // Always encodes via canvas.toDataURL('image/jpeg') — normalises all formats to JPEG
+  // IMPORTANT: strip the data-URI prefix before returning:
+  //   const dataUri = canvas.toDataURL('image/jpeg');
+  //   const base64 = dataUri.split(',')[1]; // Claude API needs raw base64, not data:...;base64,<data>
   // mimeType in the returned object is always 'image/jpeg' regardless of original file type
 }
 ```
@@ -175,7 +180,17 @@ function resizeImage(file, maxPx = 800) {
 Called by the file input's `onchange`. Reads the file, resizes it, shows scan state, POSTs to `/api/scan`, then either shows confirmation panel or triggers error fallback.
 
 ### `window.addScannedIngredients()`
-Reads checked items from the confirmation panel. For each checked item, **lowercases the name** then calls `window.quickAdd(name.toLowerCase(), qty)`. The `quickAdd()` function performs a case-sensitive `===` check against existing ingredient names — it does NOT call `parseIngredient()` internally on the scan path. Lowercasing before the call ensures scanned names like `"Chicken"` don't create duplicates alongside existing `"chicken"` entries. Calls `dismissScan()` after.
+Reads checked items from the confirmation panel. Checkbox rows must be rendered by `handleScanFile()` with `data-name` and `data-quantity` attributes (Claude's `"quantity"` field maps to `quickAdd`'s `qty` parameter):
+```html
+<label><input type="checkbox" checked data-name="chicken" data-quantity="500g"> chicken — 500g</label>
+```
+For each checked item, lowercases the name and reads quantity:
+```javascript
+const name = checkbox.dataset.name.toLowerCase();
+const qty = checkbox.dataset.quantity || '';
+window.quickAdd(name, qty);
+```
+The `quickAdd()` function performs a case-sensitive `===` check — it does NOT call `parseIngredient()` on this path. Lowercasing prevents `"Chicken"` and `"chicken"` coexisting as duplicates. Calls `dismissScan()` after.
 
 ### `window.dismissScan()`
 Hides scan options, scan state, confirmation panel, and error state. Resets the file input values to allow re-scanning the same image:
