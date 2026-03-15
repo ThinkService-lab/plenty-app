@@ -71,10 +71,17 @@ Meal card header text is always white (`#fff`) — do not change this.
 
 ## What NOT to change without care
 
-- `api/meals.js` — the `charCodeAt()` control character cleaning is intentional; regex with literal newlines broke Vercel compilation silently
-- `max_tokens: 1800` — do not reduce; health condition prompts need the headroom
-- `claude-haiku-4-5-20251001` — intentional; sonnet times out on Vercel free tier
-- Feedback POST goes directly to Google Apps Script URL from the frontend — there is no Vercel function for it
+### `charCodeAt()` control character cleaning in `api/meals.js`
+The AI response is JSON. Claude occasionally returns invisible control characters (`\x00`–`\x1F`) inside strings that break `JSON.parse()`. The normal fix is a regex like `/[\x00-\x1F]/g` — but that regex, written with literal characters in the file, was **silently corrupting Vercel's compilation** with no error message. The workaround is a character-by-character loop checking `charCodeAt(i) < 32`. It looks verbose but it is a real Vercel edge case. Do not replace it with a regex.
+
+### `claude-haiku-4-5-20251001` instead of a more capable model
+Vercel's free tier has a **10-second function timeout**. Claude Sonnet consistently hits that limit generating the full meal JSON response. Haiku is fast enough to complete within the timeout. This is not a cost decision — it is a deployment constraint. Do not upgrade the model without first upgrading the Vercel plan or verifying the timeout.
+
+### `max_tokens: 1800` passed from the frontend
+This is higher than expected for a meal card. When a user selects health conditions (e.g. Diabetes + Heart Disease), the AI generates additional `health_insights` per meal on top of the base response. At the original limit of 1200, responses were truncating mid-JSON and causing parse failures in production. 1800 gives enough headroom for the worst-case prompt. It is passed from the frontend so `meals.js` stays flexible without hardcoding it.
+
+### Feedback POST goes directly to Google Apps Script URL from the frontend
+There is no Vercel function for feedback. The frontend calls the Google Apps Script URL directly with query params. This is intentional to avoid an extra serverless function and cold start latency.
 
 ---
 
