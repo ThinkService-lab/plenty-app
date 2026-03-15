@@ -1712,8 +1712,10 @@ Exactly 3 meals. Only use provided ingredients. If the chosen cuisine does not n
     maxPx = maxPx || 800;
     return new Promise(function(resolve) {
       var reader = new FileReader();
+      reader.onerror = function() { resolve(null); };
       reader.onload = function(e) {
         var img = new Image();
+        img.onerror = function() { resolve(null); };
         img.onload = function() {
           var w = img.width, h = img.height;
           if (w > maxPx || h > maxPx) {
@@ -1733,16 +1735,21 @@ Exactly 3 meals. Only use provided ingredients. If the chosen cuisine does not n
     });
   }
 
+  var isScanning = false;
+
   // showScanError: shows the error div for 3 seconds then hides it.
+  var scanErrorTimer;
   function showScanError() {
     var el = document.getElementById('scanError');
+    clearTimeout(scanErrorTimer);
     el.classList.add('visible');
-    setTimeout(function() { el.classList.remove('visible'); }, 3000);
+    scanErrorTimer = setTimeout(function() { el.classList.remove('visible'); }, 3000);
   }
 
   // toggleScanOptions: shows/hides the Take photo / Upload from gallery options.
   // Also updates aria-expanded on the camera button for accessibility.
   window.toggleScanOptions = function toggleScanOptions() {
+    if (isScanning) return;
     var opts = document.getElementById('scanOptions');
     var btn = document.querySelector('[aria-controls="scanOptions"]');
     if (opts.classList.contains('visible')) {
@@ -1771,6 +1778,9 @@ Exactly 3 meals. Only use provided ingredients. If the chosen cuisine does not n
     var file = input.files[0];
 
     // Show spinner, hide everything else
+    isScanning = true;
+    var camBtn = document.querySelector('[aria-controls="scanOptions"]');
+    if (camBtn) camBtn.setAttribute('aria-expanded', 'false');
     document.getElementById('scanOptions').classList.remove('visible');
     document.getElementById('scanState').classList.add('visible');
     document.getElementById('scanConfirm').classList.remove('visible');
@@ -1778,6 +1788,12 @@ Exactly 3 meals. Only use provided ingredients. If the chosen cuisine does not n
 
     try {
       var resized = await resizeImage(file);
+      if (!resized) {
+        isScanning = false;
+        document.getElementById('scanState').classList.remove('visible');
+        showScanError();
+        return;
+      }
       var response = await fetch('/api/scan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1788,12 +1804,14 @@ Exactly 3 meals. Only use provided ingredients. If the chosen cuisine does not n
       document.getElementById('scanState').classList.remove('visible');
 
       if (!response.ok || data.error) {
+        isScanning = false;
         showScanError();
         return;
       }
 
       var items = data.ingredients || [];
       if (items.length === 0) {
+        isScanning = false;
         showScanError();
         return;
       }
@@ -1822,8 +1840,10 @@ Exactly 3 meals. Only use provided ingredients. If the chosen cuisine does not n
       var btn = document.getElementById('scanAddBtn');
       btn.textContent = 'Add ' + items.length + ' ingredient' + (items.length === 1 ? '' : 's');
 
+      isScanning = false;
       document.getElementById('scanConfirm').classList.add('visible');
     } catch (err) {
+      isScanning = false;
       document.getElementById('scanState').classList.remove('visible');
       showScanError();
     }
