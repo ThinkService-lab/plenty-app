@@ -1478,8 +1478,10 @@ Exactly 3 meals. Only use provided ingredients. If the chosen cuisine does not n
               <div class="health-insight"><div class="insight-icon">${i.icon}</div><div class="insight-text">${i.text}</div></div>`).join('')}
             </div></div>` : '';
 
-      const ingsHtml = (meal.ingredients_used || []).map(i => `<span class="ing-chip">${i}</span>`).join('');
-      const stepsHtml = (meal.steps || []).map((step, i) =>
+      const ingsArr = Array.isArray(meal.ingredients_used) ? meal.ingredients_used : (meal.ingredients_used ? String(meal.ingredients_used).split(',').map(s => s.trim()) : []);
+      const stepsArr = Array.isArray(meal.steps) ? meal.steps : (meal.steps ? String(meal.steps).split(',').map(s => s.trim()) : []);
+      const ingsHtml = ingsArr.map(i => `<span class="ing-chip">${i}</span>`).join('');
+      const stepsHtml = stepsArr.map((step, i) =>
         `<div class="step"><div class="step-num">${i+1}</div><div>${step}</div></div>`).join('');
 
       card.innerHTML = `

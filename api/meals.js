@@ -21,7 +21,7 @@ function sanitizeString(str, maxLen = 500) {
   if (typeof str !== 'string') return '';
   return str
     .replace(/<[^>]*>/g, '')           // strip HTML tags
-    .replace(/[^\w\s,.()\-:éèêëàâùûüïîôœç°%\/]/gi, '') // allow safe chars only
+    .replace(/[^\w\s,.()\-:éèêëàâùûüïîôœç°%\/\[\]{}"|'!?_#@]/gi, '') // allow safe chars + JSON schema chars
     .slice(0, maxLen)
     .trim();
 }
