@@ -59,6 +59,7 @@ Two tabs auto-created by the Apps Script:
 - **Diet & skill profile** — diet preference, cooking skill level, servings
 - **Health conditions** — 8 selectable conditions (Diabetes, High Cholesterol, High Blood Pressure, Heart Disease, Kidney Disease, IBS, Weight Management, Anaemia) with tailored meal rules and "Why this is good for you" insights
 - **3 meal suggestions** — name, affirmation quote, description, time, difficulty, ingredient quantities, nutrition, cooking steps
+- **Cuisine selector** — 13 options from broad (Any, African, Asian) to specific (West African, East Asian, Caribbean, etc.); passed to the AI prompt to narrow suggestions; honest adaptation naming when ingredients don't naturally fit
 - **Triadic colour meal headers** — 3 cards use colour-wheel triadic harmony (terracotta→gold, forest→sage green, plum→terracotta) with frosted-glass emoji box
 - **Staggered spring reveal** — 5-stage animation choreography per card (cardReveal → headerReveal → emojiPop → affirmSlide → chipCascade)
 - **Aurora loading state** — ambient colour blobs + dual concentric rings + shimmer skeleton cards replace the old spinner
@@ -93,7 +94,7 @@ Two tabs auto-created by the Apps Script:
 
 ## Roadmap
 ### Next (Round 1 — get paying users)
-- [x] Cuisine choice selector — narrows AI suggestions to a specific cuisine (African, Asian, Mediterranean, etc.)
+- [x] Cuisine choice selector — narrows AI suggestions to a specific cuisine (African, Asian, Mediterranean, etc.); AI names adaptations honestly when ingredients don't naturally fit the chosen cuisine
 - [ ] Free vs paid usage limit (3 meals/day free → $4.99–7.99/month)
 - [ ] First TikTok/Instagram content video
 

@@ -59,6 +59,23 @@ Meal card header text is always white (`#fff`) — do not change this.
 
 ---
 
+## Profile strip inputs
+
+Four selects in `#formSection > .profile-strip`, read in `generateMeals()`:
+
+| ID | Purpose | Default |
+|----|---------|---------|
+| `cuisinePref` | Cuisine type (13 options, "any" = no constraint) | `any` |
+| `dietPref` | Dietary restriction | `none` |
+| `skillLevel` | Cooking skill | `beginner` |
+| `servings` | Number of people | `4` |
+
+All four are injected into the AI prompt as: `Cuisine: X | Diet: X | Skill: X | Servings: X`
+
+**Cuisine adaptation rule** — the prompt instructs the AI: if the chosen cuisine doesn't naturally fit the ingredients, suggest the closest honest adaptation and name it clearly (e.g. "African-inspired pasta bake", not "Nigerian jollof"). This prevents misleading meal names when ingredients and cuisine don't match.
+
+---
+
 ## Key behaviours
 
 - **Form hides on results** — `#formSection` is hidden when `resultsSection` becomes active. `resetApp()` restores it.
