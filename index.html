@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Plenty — You Have More Than You Think</title>
+<title>PlentyMeals — You Have More Than You Think</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,800;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -1063,7 +1063,7 @@
     <div class="hero-content">
       <div class="logo-mark" style="justify-content:center;margin-bottom:20px;">
         <div class="logo-icon">🌿</div>
-        <span class="logo-text" style="color:#FFFBF5;">Plenty</span>
+        <span class="logo-text" style="color:#FFFBF5;">PlentyMeals</span>
       </div>
       <p class="hero-eyebrow">Your personal meal planner</p>
       <h1 class="hero-headline">What will you<br><em>eat today?</em></h1>
@@ -1126,7 +1126,7 @@
       <p class="health-subtitle">Select any conditions and the AI will tailor every meal — and explain exactly why each ingredient is good for you.</p>
       <div class="health-grid" id="healthGrid"></div>
       <div class="health-disclaimer">
-        <strong>Medical notice:</strong> Plenty provides general nutritional guidance only. Always consult your doctor or registered dietitian before making dietary changes for a medical condition.
+        <strong>Medical notice:</strong> PlentyMeals provides general nutritional guidance only. Always consult your doctor or registered dietitian before making dietary changes for a medical condition.
       </div>
       <div class="selected-summary" id="selectedSummary"></div>
     </div>
@@ -1266,7 +1266,7 @@
 <div class="share-card-capture" id="shareCardCapture"></div>
 
 <footer>
-  Plenty — because you have more than you think 🌿
+  PlentyMeals — because you have more than you think 🌿
   <div class="footer-links">
     <a href="/privacy.html">Privacy Policy</a>
     <a href="/terms.html">Terms of Use</a>
@@ -1388,7 +1388,7 @@
       <div class="share-card-ings">${ingsHtml}</div>
       <div class="share-card-section">Steps</div>
       <div class="share-card-steps">${stepsHtml}</div>
-      <div class="share-card-footer"><div style="font-weight:700;font-size:15px;color:#C4622D;">🌿 Plenty</div><div style="font-size:12px;color:#888;margin-top:3px;">Free at plenty-app-nine.vercel.app</div></div>`;
+      <div class="share-card-footer"><div style="font-weight:700;font-size:15px;color:#C4622D;">🌿 PlentyMeals</div><div style="font-size:12px;color:#888;margin-top:3px;">Free at plenty-app-nine.vercel.app</div></div>`;
 
     // Capture as image
     try {
@@ -1404,7 +1404,7 @@
     }
 
     // Set up share links
-    const text = `🌿 Check out this meal I can make tonight with Plenty!
+    const text = `🌿 Check out this meal I can make tonight with PlentyMeals!
 
 *${meal.name}*
 ${meal.affirmation}
@@ -1432,7 +1432,7 @@ ${currentShareMeal.affirmation}
 
 Ingredients: ${(currentShareMeal.ingredients_used||[]).join(', ')}
 
-Made with Plenty 🌿
+Made with PlentyMeals 🌿
 
 https://plenty-app-nine.vercel.app`;
     navigator.clipboard.writeText(text).then(() => {
@@ -1599,7 +1599,7 @@ https://plenty-app-nine.vercel.app`;
 
     const ingList = buildIngredientsList();
 
-    const prompt = `Plenty AI chef. Empowering, abundant tone. Never say limited/few/only.
+    const prompt = `PlentyMeals AI chef. Empowering, abundant tone. Never say limited/few/only.
 
 Ingredients: ${ingList}
 Cuisine: ${cuisine === 'any' ? 'any cuisine' : cuisine} | Diet: ${diet} | Skill: ${skill} | Servings: ${servings}${buildHealthRules()}${buildRatingContext()}
@@ -1807,7 +1807,7 @@ Exactly 3 meals. Only use provided ingredients. If the chosen cuisine does not n
           <input type="email" class="email-field" id="emailField" placeholder="your@email.com" />
           <button class="email-submit-btn" id="emailJoinBtn">Join free</button>
         </div>
-        <div class="email-success" id="emailSuccess">✨ You're in! Welcome to Plenty.</div>
+        <div class="email-success" id="emailSuccess">✨ You're in! Welcome to PlentyMeals.</div>
         <div class="email-error" id="emailError">Something went wrong — please try again.</div>
       </div>`;
     document.getElementById('emailJoinBtn').addEventListener('click', submitEmail);
@@ -1868,7 +1868,7 @@ Exactly 3 meals. Only use provided ingredients. If the chosen cuisine does not n
           vote: feedbackVote || 'none',
           message: text,
           email: email,
-          source: 'Plenty Feedback'
+          source: 'PlentyMeals Feedback'
         });
         await fetch(SHEETS_URL + '?' + params.toString(), { method: 'GET', redirect: 'follow' });
         if (email) window.plentySubscribed = true;
@@ -1894,13 +1894,13 @@ Exactly 3 meals. Only use provided ingredients. If the chosen cuisine does not n
 
     // Share nudge card
     const appUrl = 'https://plenty-app-nine.vercel.app';
-    const nudgeText = encodeURIComponent(`🌿 I just found 3 meals I can make from what I already have!\n\nTry Plenty free — it turns your ingredients into meal ideas:\n${appUrl}`);
+    const nudgeText = encodeURIComponent(`🌿 I just found 3 meals I can make from what I already have!\n\nTry PlentyMeals free — it turns your ingredients into meal ideas:\n${appUrl}`);
     document.getElementById('shareNudgeCard').innerHTML = `
       <div class="share-nudge-card">
         <h3>🤝 Know someone who'd love this?</h3>
-        <p>Share Plenty with a friend who's ever stared at the fridge and thought "there's nothing to eat".</p>
+        <p>Share PlentyMeals with a friend who's ever stared at the fridge and thought "there's nothing to eat".</p>
         <a class="share-nudge-btn" href="https://wa.me/?text=${nudgeText}" target="_blank">
-          <span>💬</span> Share Plenty on WhatsApp
+          <span>💬</span> Share PlentyMeals on WhatsApp
         </a>
       </div>`;
 
@@ -1937,7 +1937,7 @@ Exactly 3 meals. Only use provided ingredients. If the chosen cuisine does not n
       await fetch('/api/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, source: 'Plenty App' })
+        body: JSON.stringify({ email, source: 'PlentyMeals App' })
       });
       emailField.style.display = 'none';
       btn.style.display = 'none';
