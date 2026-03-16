@@ -102,6 +102,7 @@ export async function checkAndIncrementUsage(idToken) {
   try {
     plan = await getUserPlan(uid);
   } catch (e) {
+    console.warn('[usage] getUserPlan failed for uid', uid, e.message);
     plan = 'free';
   }
   const limit = PLAN_LIMITS[plan] ?? 2;
@@ -153,9 +154,15 @@ export default async function handler(req, res) {
   }
   const uid = decodedToken.uid;
 
-  const plan = await getUserPlan(uid).catch(() => 'free');
+  const plan = await getUserPlan(uid).catch((e) => {
+    console.warn('[usage] GET getUserPlan failed for uid', uid, e.message);
+    return 'free';
+  });
   const limit = PLAN_LIMITS[plan] ?? 2;
-  const count = await getTodayCount(uid).catch(() => 0);
+  const count = await getTodayCount(uid).catch((e) => {
+    console.warn('[usage] GET getTodayCount failed for uid', uid, e.message);
+    return 0;
+  });
 
   return res.status(200).json({ count, limit, plan });
 }
