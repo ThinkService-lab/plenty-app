@@ -93,6 +93,7 @@ export async function checkAndIncrementUsage(idToken) {
   try {
     decodedToken = await adminAuth.verifyIdToken(idToken);
   } catch (e) {
+    console.error('[usage] verifyIdToken failed:', e.code, e.message);
     const isNetworkError = e.code === 'auth/network-request-failed';
     return { error: isNetworkError ? 'service_unavailable' : 'unauthorized' };
   }
