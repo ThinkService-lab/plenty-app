@@ -1568,6 +1568,11 @@ https://plenty-app-nine.vercel.app`;
 
   // ── Generate meals ──
   window.generateMeals = async function() {
+    // Gate anonymous users after 2 tries
+    if (!window._currentUser && typeof window.getAnonCount === 'function' && window.getAnonCount() >= 2) {
+      if (typeof window.showLoginModal === 'function') window.showLoginModal();
+      return;
+    }
     const cuisine = document.getElementById('cuisinePref').value;
     const diet = document.getElementById('dietPref').value;
     const skill = document.getElementById('skillLevel').value;
@@ -1597,23 +1602,60 @@ Respond ONLY in this JSON format, no markdown:
 Exactly 3 meals. Only use provided ingredients. If the chosen cuisine does not naturally fit the ingredients, suggest the closest honest adaptation and name it clearly (e.g. "African-inspired pasta bake" not "Nigerian jollof").${buildHealthInsightsInstruction()}`;
 
     try {
+      // Get fresh Firebase ID token for authenticated requests
+      var _authHeaders = {};
+      if (window._currentUser) {
+        try {
+          var _idToken = await window._currentUser.getIdToken();
+          _authHeaders = { 'Authorization': 'Bearer ' + _idToken };
+        } catch (e) { /* token fetch failed — proceed as anonymous */ }
+      }
       const response = await fetch('/api/meals', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: Object.assign({ 'Content-Type': 'application/json' }, _authHeaders),
         body: JSON.stringify({ max_tokens: 1800, messages: [{ role: 'user', content: prompt }] })
       });
       const data = await response.json();
+      // Handle usage limit reached (distinct from IP rate limit — check data.error)
+      if (response.status === 429 && data.error === 'limit_reached') {
+        clearTimeout(slowTimer);
+        document.getElementById('loadingState').classList.remove('active');
+        document.getElementById('generateBtn').style.display = 'flex';
+        if (typeof window.showPaywallModal === 'function') window.showPaywallModal(data.resets_at);
+        return;
+      }
+      // Handle expired session
+      if (response.status === 401) {
+        clearTimeout(slowTimer);
+        document.getElementById('loadingState').classList.remove('active');
+        document.getElementById('generateBtn').style.display = 'flex';
+        if (typeof window.signOut === 'function') await window.signOut();
+        if (typeof window.showLoginModal === 'function') window.showLoginModal();
+        return;
+      }
       if (!response.ok) throw new Error(data.error?.message || 'API error');
 
       clearTimeout(slowTimer);
       
       if (data.clean && data.parsed) {
         renderResults(data.parsed);
+        // Track anonymous usage
+        if (!window._currentUser && typeof window.incrementAnonCount === 'function') window.incrementAnonCount();
+        // Update usage indicator for logged-in free users
+        if (data.usage && typeof window.updateUsageIndicator === 'function') {
+          window.updateUsageIndicator(data.usage.count, data.usage.limit, window._currentUsagePlan);
+        }
       } else if (data.raw) {
         const jsonStart = data.raw.indexOf('{');
         const jsonEnd = data.raw.lastIndexOf('}');
         if (jsonStart === -1 || jsonEnd === -1) throw new Error('No valid response. Please try again.');
         renderResults(JSON.parse(data.raw.substring(jsonStart, jsonEnd + 1)));
+        // Track anonymous usage
+        if (!window._currentUser && typeof window.incrementAnonCount === 'function') window.incrementAnonCount();
+        // Update usage indicator for logged-in free users
+        if (data.usage && typeof window.updateUsageIndicator === 'function') {
+          window.updateUsageIndicator(data.usage.count, data.usage.limit, window._currentUsagePlan);
+        }
       } else {
         throw new Error('No valid response. Please try again.');
       }
@@ -2080,7 +2122,207 @@ Exactly 3 meals. Only use provided ingredients. If the chosen cuisine does not n
   };
 </script>
 
-  <!-- Firebase auth module script — added in Task 6 -->
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+    import {
+      getAuth,
+      GoogleAuthProvider,
+      signInWithPopup,
+      sendSignInLinkToEmail,
+      isSignInWithEmailLink,
+      signInWithEmailLink,
+      onAuthStateChanged,
+      signOut as firebaseSignOut
+    } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+
+    // ── Firebase config (public values — safe to hardcode)
+    // Replace apiKey and authDomain with values from Firebase Console → Project Settings → Your apps
+    const firebaseConfig = {
+      apiKey: 'REPLACE_WITH_FIREBASE_API_KEY',
+      authDomain: 'REPLACE_WITH_FIREBASE_AUTH_DOMAIN',
+      projectId: 'REPLACE_WITH_FIREBASE_PROJECT_ID'
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const googleProvider = new GoogleAuthProvider();
+
+    // ── Shared state (accessible from existing script via window globals)
+    window._firebaseAuth = auth;
+    window._currentUser = null;
+    window._currentUsagePlan = 'free';
+
+    // ── Anonymous counter helpers
+    window.getAnonCount = function() {
+      return parseInt(localStorage.getItem('plenty_anon_count') || '0', 10);
+    };
+    window.incrementAnonCount = function() {
+      localStorage.setItem('plenty_anon_count', String(window.getAnonCount() + 1));
+    };
+    window.resetAnonCount = function() {
+      localStorage.removeItem('plenty_anon_count');
+    };
+
+    // ── Auth chip
+    window.renderAuthChip = function(user) {
+      var emailStr = (user && user.email) ? user.email : '';
+      var el = document.getElementById('authInitial');
+      if (el) el.textContent = emailStr.charAt(0).toUpperCase();
+      var emailEl = document.getElementById('authEmailText');
+      if (emailEl) emailEl.textContent = emailStr.length > 20 ? emailStr.slice(0, 20) + '\u2026' : emailStr;
+      var chip = document.getElementById('authChip');
+      if (chip) chip.style.display = 'flex';
+    };
+    window.hideAuthChip = function() {
+      var chip = document.getElementById('authChip');
+      if (chip) chip.style.display = 'none';
+      var dropdown = document.getElementById('authSignOutDropdown');
+      if (dropdown) dropdown.style.display = 'none';
+    };
+    window.toggleSignOutDropdown = function() {
+      var dropdown = document.getElementById('authSignOutDropdown');
+      if (!dropdown) return;
+      dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+    };
+
+    // ── Usage indicator
+    window.updateUsageIndicator = function(count, limit, plan) {
+      window._currentUsagePlan = plan || 'free';
+      var el = document.getElementById('usageIndicator');
+      if (!el) return;
+      if (!window._currentUser || plan !== 'free') { el.style.display = 'none'; return; }
+      el.textContent = count + ' of ' + limit + ' free meal plans used today';
+      el.style.display = 'block';
+    };
+    window.hideUsageIndicator = function() {
+      var el = document.getElementById('usageIndicator');
+      if (el) el.style.display = 'none';
+    };
+    window.fetchAndRenderUsage = async function() {
+      if (!window._currentUser) return;
+      try {
+        var token = await window._currentUser.getIdToken();
+        var res = await fetch('/api/usage', {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        if (res.ok) {
+          var data = await res.json();
+          window.updateUsageIndicator(data.count, data.limit, data.plan);
+        }
+      } catch (e) { /* non-critical — indicator stays hidden */ }
+    };
+
+    // ── Login modal
+    window.showLoginModal = function() {
+      var modal = document.getElementById('loginModal');
+      if (modal) modal.style.display = 'flex';
+    };
+    window.hideLoginModal = function() {
+      var modal = document.getElementById('loginModal');
+      if (modal) modal.style.display = 'none';
+      var area = document.getElementById('emailInputArea');
+      if (area) area.style.display = 'none';
+      var input = document.getElementById('magicLinkEmail');
+      if (input) input.value = '';
+      var sent = document.getElementById('magicLinkSent');
+      if (sent) sent.style.display = 'none';
+    };
+    window.handleLoginBackdropClick = function(e) {
+      if (e.target && e.target.id === 'loginModal') window.hideLoginModal();
+    };
+    window.signInWithGoogle = async function() {
+      try {
+        await signInWithPopup(auth, googleProvider);
+      } catch (e) {
+        if (e.code !== 'auth/popup-closed-by-user') {
+          console.error('[auth] Google sign-in error', e.message);
+        }
+      }
+    };
+    window.showEmailInput = function() {
+      var area = document.getElementById('emailInputArea');
+      if (area) area.style.display = 'block';
+    };
+    window.sendMagicLink = async function() {
+      var emailEl = document.getElementById('magicLinkEmail');
+      var email = emailEl ? emailEl.value.trim() : '';
+      if (!email) return;
+      var actionCodeSettings = {
+        url: window.location.origin,
+        handleCodeInApp: true
+      };
+      try {
+        await sendSignInLinkToEmail(auth, email, actionCodeSettings);
+        localStorage.setItem('plenty_email_for_signin', email);
+        var sent = document.getElementById('magicLinkSent');
+        if (sent) sent.style.display = 'block';
+      } catch (e) {
+        console.error('[auth] send magic link error', e.message);
+      }
+    };
+
+    // ── Paywall modal
+    window.showPaywallModal = function(resetsAt) {
+      var modal = document.getElementById('paywallModal');
+      if (!modal) return;
+      modal.style.display = 'flex';
+      var locale = navigator.language || 'en-US';
+      var currencyMap = { 'en-CA': 'CAD', 'fr-CA': 'CAD', 'en-GB': 'GBP', 'en-AU': 'AUD', 'en-NZ': 'NZD' };
+      var currency = currencyMap[locale] || 'USD';
+      var fmt = new Intl.NumberFormat(locale, { style: 'currency', currency: currency, minimumFractionDigits: 2 });
+      var stdEl = document.getElementById('paywallPriceStandard');
+      if (stdEl) stdEl.textContent = fmt.format(4.99) + '/mo';
+      var unlEl = document.getElementById('paywallPriceUnlimited');
+      if (unlEl) unlEl.textContent = fmt.format(9.99) + '/mo';
+      if (resetsAt) {
+        var resetTime = new Date(resetsAt).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
+        var noteEl = document.getElementById('paywallResetNote');
+        if (noteEl) noteEl.textContent = 'Your 2 free plans reset at ' + resetTime;
+      }
+    };
+    window.handlePaywallBackdropClick = function(e) {
+      if (e.target && e.target.id === 'paywallModal') {
+        var modal = document.getElementById('paywallModal');
+        if (modal) modal.style.display = 'none';
+      }
+    };
+
+    // ── Sign out
+    window.signOut = async function() {
+      await firebaseSignOut(auth);
+      window._currentUser = null;
+      window._currentUsagePlan = 'free';
+      window.resetAnonCount();
+      window.hideAuthChip();
+      window.hideUsageIndicator();
+    };
+
+    // ── Handle email link sign-in on page load
+    if (isSignInWithEmailLink(auth, window.location.href)) {
+      var emailForSignIn = localStorage.getItem('plenty_email_for_signin');
+      if (emailForSignIn) {
+        signInWithEmailLink(auth, emailForSignIn, window.location.href)
+          .then(function() {
+            localStorage.removeItem('plenty_email_for_signin');
+            window.history.replaceState({}, document.title, window.location.pathname);
+          })
+          .catch(function(e) { console.error('[auth] email link sign-in error', e.message); });
+      }
+    }
+
+    // ── Auth state listener (fires on sign-in, sign-out, and page load if session exists)
+    onAuthStateChanged(auth, async function(user) {
+      window._currentUser = user;
+      if (user) {
+        window.renderAuthChip(user);
+        await window.fetchAndRenderUsage();
+        window.hideLoginModal();
+      } else {
+        window.hideAuthChip();
+        window.hideUsageIndicator();
+      }
+    });
+  </script>
 
   <!-- ── Login modal ── -->
   <div id="loginModal" class="auth-modal-backdrop" style="display:none" onclick="window.handleLoginBackdropClick(event)">
