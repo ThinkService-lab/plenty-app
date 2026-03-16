@@ -390,6 +390,203 @@
   .scan-error { display: none; background: #FDE8E8; border: 1.5px solid #F5C6C6; border-radius: 12px; padding: 10px 16px; margin-top: 8px; font-size: 13px; color: #C43D3D; }
   .scan-error.visible { display: block; }
 
+    /* ── Auth chip ── */
+    /* Note: .hero-content already has position:relative — do not add it again */
+    .auth-chip {
+      position: absolute;
+      top: 12px;
+      right: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+    }
+    .auth-initial {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--terracotta);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 13px;
+      flex-shrink: 0;
+    }
+    .auth-email-text {
+      font-size: 12px;
+      color: var(--muted);
+      max-width: 140px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .auth-signout-dropdown {
+      position: absolute;
+      top: calc(100% + 6px);
+      right: 0;
+      background: var(--warm-white);
+      border-radius: 10px;
+      box-shadow: var(--shadow-card);
+      padding: 8px 14px;
+      font-size: 13px;
+      color: var(--terracotta);
+      white-space: nowrap;
+      cursor: pointer;
+      z-index: 10;
+    }
+
+    /* ── Auth modals (login + paywall share this base) ── */
+    .auth-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .auth-modal-card {
+      background: var(--warm-white);
+      border-radius: 20px;
+      padding: 32px 28px;
+      max-width: 340px;
+      width: calc(100% - 40px);
+      box-shadow: var(--shadow-card);
+      text-align: center;
+      animation: authSlideUp 0.3s var(--spring);
+    }
+    @keyframes authSlideUp {
+      from { transform: translateY(40px); opacity: 0; }
+      to   { transform: translateY(0);    opacity: 1; }
+    }
+    .auth-modal-icon { font-size: 32px; margin-bottom: 12px; }
+    .auth-modal-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--earth);
+      margin-bottom: 8px;
+    }
+    .auth-modal-subtitle {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+    .auth-btn-primary {
+      width: 100%;
+      padding: 13px;
+      border-radius: 12px;
+      background: var(--terracotta);
+      color: #fff;
+      font-weight: 600;
+      font-size: 15px;
+      border: none;
+      cursor: pointer;
+      margin-bottom: 10px;
+      font-family: 'DM Sans', sans-serif;
+    }
+    .auth-btn-secondary {
+      width: 100%;
+      padding: 13px;
+      border-radius: 12px;
+      background: transparent;
+      color: var(--terracotta);
+      font-weight: 600;
+      font-size: 15px;
+      border: 2px solid var(--terracotta);
+      cursor: pointer;
+      margin-bottom: 10px;
+      font-family: 'DM Sans', sans-serif;
+    }
+    .auth-email-input {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      border: 1.5px solid #ddd;
+      font-size: 15px;
+      margin-bottom: 8px;
+      box-sizing: border-box;
+      font-family: 'DM Sans', sans-serif;
+    }
+    .auth-btn-send {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      background: var(--terracotta);
+      color: #fff;
+      font-weight: 600;
+      font-size: 14px;
+      border: none;
+      cursor: pointer;
+      margin-bottom: 8px;
+      font-family: 'DM Sans', sans-serif;
+    }
+    .auth-magic-sent {
+      font-size: 14px;
+      color: var(--sage);
+      margin-bottom: 8px;
+    }
+    .auth-modal-note {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 12px;
+    }
+
+    /* ── Paywall plan cards ── */
+    .paywall-plans {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .paywall-plan {
+      flex: 1;
+      border: 2px solid #eee;
+      border-radius: 14px;
+      padding: 14px 10px;
+      text-align: center;
+    }
+    .paywall-plan-featured { border-color: var(--terracotta); background: #FDF6F0; }
+    .paywall-plan-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    .paywall-plan-price {
+      font-size: 19px;
+      font-weight: 800;
+      color: var(--earth);
+      margin-bottom: 2px;
+    }
+    .paywall-plan-desc {
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+    .paywall-plan-btn {
+      width: 100%;
+      padding: 8px;
+      border-radius: 8px;
+      background: #eee;
+      color: #aaa;
+      font-size: 12px;
+      border: none;
+      cursor: not-allowed;
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    /* ── Usage indicator ── */
+    .usage-indicator {
+      font-size: 13px;
+      color: var(--muted);
+      text-align: center;
+      margin-top: 8px;
+    }
 
   /* Meal card placeholder header */
   .meal-placeholder {
