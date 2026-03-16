@@ -34,7 +34,7 @@
   /* ── Hero ───────────────────────────────────────── */
   .hero {
     background: var(--hero-gradient);
-    padding: 60px 24px 48px;
+    padding: 28px 24px 48px;
     text-align: center;
     position: relative;
     overflow: hidden;
@@ -390,16 +390,44 @@
   .scan-error { display: none; background: #FDE8E8; border: 1.5px solid #F5C6C6; border-radius: 12px; padding: 10px 16px; margin-top: 8px; font-size: 13px; color: #C43D3D; }
   .scan-error.visible { display: block; }
 
+    /* ── Site nav ── */
+    .site-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 28px;
+      position: relative;
+      z-index: 2;
+    }
+    .site-nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .site-nav-logo-icon {
+      width: 30px;
+      height: 30px;
+      background: var(--terracotta);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+    }
+    .site-nav-logo-text {
+      font-family: 'Playfair Display', serif;
+      font-size: 17px;
+      color: #FFFBF5;
+      letter-spacing: -0.3px;
+    }
+
     /* ── Auth chip ── */
-    /* Note: .hero-content already has position:relative — do not add it again */
     .auth-chip {
-      position: absolute;
-      top: 12px;
-      right: 0;
       display: flex;
       align-items: center;
       gap: 8px;
       cursor: pointer;
+      position: relative;
     }
     .auth-initial {
       width: 32px;
@@ -1060,19 +1088,21 @@
 <div class="container">
 
   <div class="hero">
-    <div class="hero-content">
-      <div class="logo-mark" style="justify-content:center;margin-bottom:20px;">
-        <div class="logo-icon">🌿</div>
-        <span class="logo-text" style="color:#FFFBF5;">PlentyMeals</span>
+    <div class="site-nav">
+      <div class="site-nav-logo">
+        <div class="site-nav-logo-icon">🌿</div>
+        <span class="site-nav-logo-text">PlentyMeals</span>
       </div>
+      <div id="authChip" class="auth-chip" style="display:none" onclick="window.toggleSignOutDropdown()">
+        <div id="authInitial" class="auth-initial"></div>
+        <span id="authEmailText" class="auth-email-text"></span>
+        <div id="authSignOutDropdown" class="auth-signout-dropdown" style="display:none" onclick="window.signOut()">Sign out</div>
+      </div>
+    </div>
+    <div class="hero-content">
       <p class="hero-eyebrow">Your personal meal planner</p>
       <h1 class="hero-headline">What will you<br><em>eat today?</em></h1>
       <p class="hero-sub">Tell us what's in your kitchen and we'll craft personalised meal suggestions just for you.</p>
-        <div id="authChip" class="auth-chip" style="display:none" onclick="window.toggleSignOutDropdown()">
-          <div id="authInitial" class="auth-initial"></div>
-          <span id="authEmailText" class="auth-email-text"></span>
-          <div id="authSignOutDropdown" class="auth-signout-dropdown" style="display:none" onclick="window.signOut()">Sign out</div>
-        </div>
     </div>
   </div>
 
