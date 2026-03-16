@@ -14,9 +14,10 @@ Plenty is a single-page AI meal suggestion app. Users enter ingredients they hav
 
 **The entire frontend lives in `index.html`.** There is no build step, no framework, no bundler. Every CSS rule, HTML element, and JS function is in this one file. Do not split it.
 
-The backend is four Vercel serverless functions in `/api/`:
-- `meals.js` — proxies the Anthropic API call
+The backend is five Vercel serverless functions in `/api/`:
+- `meals.js` — proxies the Anthropic API call; checks usage limits for authenticated users
 - `scan.js` — accepts a base64 image, calls Claude Haiku vision, returns identified ingredients as JSON
+- `usage.js` — exports `checkAndIncrementUsage(accessToken)` (imported by `meals.js`); also serves GET `/api/usage` for the frontend to fetch current usage count
 - `subscribe.js` — saves emails to Google Sheets
 - `photo.js` — unused, leave it
 
@@ -130,13 +131,46 @@ There is no Vercel function for feedback. The frontend calls the Google Apps Scr
 
 ---
 
+## Supabase auth + usage tracking (branch: `supabase-auth`)
+
+**Status:** Implementation plan ready — not yet executed. Branch does not exist yet.
+
+**Feature summary:**
+- Anonymous users get 2 lifetime tries (tracked in `localStorage` key `plenty_anon_count`) before a login modal appears
+- Logged-in free users get 2 generations/day — enforced server-side via atomic Postgres upsert
+- Google OAuth + email magic link login (no password)
+- Paywall modal on limit hit; shows server-authoritative reset time from `resets_at` field in the 429 response
+- Currency auto-detected from browser locale (`en-CA` → CAD, `en-GB` → GBP, etc.)
+
+**New Supabase env vars (required in `.env.local` and Vercel dashboard before the branch can run):**
+- `SUPABASE_URL` — public, safe in `index.html`
+- `SUPABASE_ANON_KEY` — public, safe in `index.html`
+- `SUPABASE_SERVICE_ROLE_KEY` — **secret, server-side only, never in `index.html`**
+
+**Key implementation files:**
+- Plan: `docs/superpowers/plans/2026-03-15-supabase-auth-usage.md`
+- Spec: `docs/superpowers/specs/2026-03-15-supabase-auth-usage-design.md`
+
+**To resume implementation:** run `superpowers:subagent-driven-development` on the plan above, starting with Task 1 (create `supabase-auth` branch + Supabase project setup).
+
+**Supabase JS on frontend:** loaded from CDN at pinned version — no npm packages added:
+```
+https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.min.js
+```
+
+**Server-side Supabase calls:** raw `fetch()` against Supabase REST endpoints — no npm dependency.
+
+**Do not use `node --check` on `index.html`** — Node can't parse HTML files. Use `vercel dev` and check the browser console instead. `node --check` is valid for `.js` files only.
+
+---
+
 ## Local dev
 
 ```bash
 vercel dev          # starts at http://localhost:3000
 ```
 
-Requires `.env.local` with `ANTHROPIC_API_KEY=...` in the project root.
+Requires `.env.local` with `ANTHROPIC_API_KEY=...` in the project root. Once the `supabase-auth` branch is active, also requires `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY`.
 
 ---
 
@@ -161,5 +195,5 @@ git checkout main && git merge my-feature && git push origin main
 - [ ] Braces balanced in CSS
 - [ ] Backticks even in JS template literals
 - [ ] All new `onclick` functions assigned to `window.*`
-- [ ] `node --check index.html` passes (or open in browser, no console errors)
+- [ ] Open in browser (`vercel dev`) — no console errors (do NOT use `node --check index.html`, it can't parse HTML)
 - [ ] Test on mobile viewport (375px) — no overflow or clipping

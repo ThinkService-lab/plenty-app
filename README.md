@@ -21,6 +21,7 @@ Plenty takes whatever ingredients you have and suggests 3 complete meals you can
 │       └── plans/            ← implementation plans
 └── api/
     ├── meals.js              ← Anthropic API proxy (main AI route)
+    ├── usage.js              ← usage tracking: checkAndIncrementUsage + GET /api/usage
     ├── scan.js               ← Claude Haiku vision: photo → ingredient list
     ├── subscribe.js          ← email capture → Google Sheets
     └── photo.js              ← unused (gradient placeholders used instead)
@@ -34,6 +35,7 @@ Plenty takes whatever ingredients you have and suggests 3 complete meals you can
 | Frontend | Vanilla HTML/CSS/JS (single file) |
 | Backend | Vercel serverless functions |
 | AI | Claude Haiku (`claude-haiku-4-5-20251001`) |
+| Auth & database | Supabase (Google OAuth + email magic link, Postgres usage tracking) |
 | Feedback & email capture | Google Apps Script → Google Sheet |
 | Hosting | Vercel (free tier, auto-deploy from GitHub) |
 
@@ -43,6 +45,9 @@ Plenty takes whatever ingredients you have and suggests 3 complete meals you can
 | Variable | Used by |
 |---|---|
 | `ANTHROPIC_API_KEY` | `api/meals.js` |
+| `SUPABASE_URL` | `api/usage.js`, also hardcoded in `index.html` (public) |
+| `SUPABASE_ANON_KEY` | hardcoded in `index.html` (public, safe to expose) |
+| `SUPABASE_SERVICE_ROLE_KEY` | `api/usage.js` — **secret, server-side only, never in index.html** |
 | `UNSPLASH_KEY` | Not currently used |
 | `PEXELS_KEY` | Not currently used |
 
@@ -100,7 +105,7 @@ Two tabs auto-created by the Apps Script:
 ## Roadmap
 ### Next (Round 1 — get paying users)
 - [x] Cuisine choice selector — narrows AI suggestions to a specific cuisine (African, Asian, Mediterranean, etc.); AI names adaptations honestly when ingredients don't naturally fit the chosen cuisine
-- [ ] Free vs paid usage limit (3 meals/day free → $4.99–7.99/month)
+- [ ] **Login + usage limits** ← _in progress on `supabase-auth` branch_ — Google + email magic link login; 2 free generations/day; paywall modal with Standard ($4.99/mo CAD) and Unlimited ($9.99/mo CAD) tiers (payment in Phase 2)
 - [ ] First TikTok/Instagram content video
 
 ### Round 2 — wow factor
