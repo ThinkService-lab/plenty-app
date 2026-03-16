@@ -1737,13 +1737,6 @@ Exactly 3 meals. Only use provided ingredients. If the chosen cuisine does not n
         if (typeof window.showPaywallModal === 'function') window.showPaywallModal(data.resets_at);
         return;
       }
-      // Handle App Check failure — do NOT sign out, just show a retry message
-      if (response.status === 403 && data.error === 'app_check_failed') {
-        clearTimeout(slowTimer);
-        document.getElementById('loadingState').classList.remove('active');
-        document.getElementById('generateBtn').style.display = 'flex';
-        throw new Error('Security check failed. Please refresh the page and try again.');
-      }
       // Handle expired session
       if (response.status === 401) {
         clearTimeout(slowTimer);

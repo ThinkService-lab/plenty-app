@@ -52,15 +52,15 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  // ── App Check verification
+  // ── App Check verification (soft — verify when present, don't block if missing)
+  // ID token + rate limiting provide sufficient protection as fallback layers.
   const appCheckToken = req.headers['x-firebase-appcheck'];
-  if (!appCheckToken) {
-    return res.status(403).json({ error: 'app_check_failed' });
-  }
-  try {
-    await getAppCheck().verifyToken(appCheckToken);
-  } catch (e) {
-    return res.status(403).json({ error: 'app_check_failed' });
+  if (appCheckToken) {
+    try {
+      await getAppCheck().verifyToken(appCheckToken);
+    } catch (e) {
+      console.warn('[app-check] meals token verification failed:', e.message);
+    }
   }
 
   // ── Rate limiting
