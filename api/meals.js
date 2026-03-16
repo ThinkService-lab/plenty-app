@@ -1,3 +1,5 @@
+import { checkAndIncrementUsage } from './usage.js';
+
 // ── In-memory rate limiter (resets on cold start, good enough for serverless)
 const rateLimitMap = new Map();
 const RATE_LIMIT = 10;        // max requests
@@ -45,7 +47,7 @@ export default async function handler(req, res) {
   // ── CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
@@ -57,6 +59,34 @@ export default async function handler(req, res) {
 
   if (isRateLimited(ip)) {
     return res.status(429).json({ error: 'Too many requests. Please wait a moment and try again.' });
+  }
+
+  // ── Usage check (authenticated requests only)
+  // Anonymous requests (no Authorization header) pass through — client enforces the 2-try anon limit.
+  const authHeader = req.headers['authorization'];
+  let usageData = null;
+
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.slice(7);
+    const usageResult = await checkAndIncrementUsage(token);
+
+    if (usageResult.error === 'unauthorized') {
+      return res.status(401).json({ error: 'Session expired. Please log in again.' });
+    }
+    if (usageResult.error === 'service_unavailable') {
+      return res.status(503).json({ error: 'Service temporarily unavailable. Please try again.' });
+    }
+    if (usageResult.error === 'limit_reached') {
+      const now = new Date();
+      const tomorrow = new Date(Date.UTC(
+        now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1
+      ));
+      return res.status(429).json({
+        error: 'limit_reached',
+        resets_at: tomorrow.toISOString()
+      });
+    }
+    usageData = { count: usageResult.count, limit: usageResult.limit };
   }
 
   // ── Validate & sanitize body
@@ -107,9 +137,9 @@ export default async function handler(req, res) {
         }).join('');
         try {
           const parsed = JSON.parse(jsonStr);
-          return res.status(200).json({ clean: true, parsed });
+          return res.status(200).json({ clean: true, parsed, usage: usageData });
         } catch (parseErr) {
-          return res.status(200).json({ clean: false, raw: jsonStr });
+          return res.status(200).json({ clean: false, raw: jsonStr, usage: usageData });
         }
       }
     }
