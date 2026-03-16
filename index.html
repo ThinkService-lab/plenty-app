@@ -2164,7 +2164,7 @@ Exactly 3 meals. Only use provided ingredients. If the chosen cuisine does not n
       var el = document.getElementById('authInitial');
       if (el) el.textContent = emailStr.charAt(0).toUpperCase();
       var emailEl = document.getElementById('authEmailText');
-      if (emailEl) emailEl.textContent = emailStr.length > 20 ? emailStr.slice(0, 20) + '\u2026' : emailStr;
+      if (emailEl) emailEl.textContent = '';
       var chip = document.getElementById('authChip');
       if (chip) chip.style.display = 'flex';
     };
