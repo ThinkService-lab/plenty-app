@@ -93,7 +93,6 @@ export async function checkAndIncrementUsage(idToken) {
   try {
     decodedToken = await adminAuth.verifyIdToken(idToken);
   } catch (e) {
-    console.error('[usage] verifyIdToken failed:', e.code, e.message);
     const isNetworkError = e.code === 'auth/network-request-failed';
     return { error: isNetworkError ? 'service_unavailable' : 'unauthorized' };
   }
@@ -114,7 +113,7 @@ export async function checkAndIncrementUsage(idToken) {
   try {
     result = await atomicIncrement(uid, limit);
   } catch (e) {
-    console.error('[usage] atomicIncrement failed for uid', uid, e.code, e.message);
+    console.error('[usage] atomicIncrement failed for uid', uid, e.message);
     return { count: 0, limit, plan };
   }
 
