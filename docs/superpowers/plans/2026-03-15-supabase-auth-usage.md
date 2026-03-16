@@ -1,166 +1,131 @@
-# Supabase Auth + Usage Tracking Implementation Plan
+# Auth + Usage Tracking Implementation Plan (Firebase)
 
 > **For agentic workers:** REQUIRED: Use superpowers:subagent-driven-development (if subagents available) or superpowers:executing-plans to implement this plan. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add Google + email magic link login, enforce 2 free generations/day for logged-in users, show login and paywall modals, track usage in Supabase.
+**Goal:** Add Google + email magic link login, enforce 2 free generations/day for logged-in users, show login and paywall modals, track usage in Firebase Firestore.
 
-**Architecture:** Anonymous users get 2 lifetime tries (tracked in localStorage) before a login modal appears. Logged-in users get 2 generations/day enforced server-side via an atomic Postgres upsert. `api/usage.js` exports `checkAndIncrementUsage()` as a named function imported by `api/meals.js` — no HTTP call between functions. Supabase JS loaded from CDN on the frontend; server side uses raw `fetch()` against Supabase REST endpoints — no npm packages added.
+**Architecture:** Anonymous users get 2 lifetime tries (tracked in `localStorage` key `plenty_anon_count`) before a login modal appears. Logged-in users get 2 generations/day enforced server-side via a Firestore transaction. `api/usage.js` exports `checkAndIncrementUsage()` as a named function imported by `api/meals.js` — no HTTP call between functions. Firebase JS SDK v10 loaded from Google CDN on the frontend (ES modules); server side uses `firebase-admin` npm package.
 
-**Tech Stack:** Supabase (Auth + Postgres), Supabase JS CDN v2.39.7, Vercel serverless functions (ES modules), vanilla JS
+**Tech Stack:** Firebase (Auth + Firestore), Firebase JS SDK CDN v10.12.2, firebase-admin npm package, Vercel serverless functions (ES modules), vanilla JS
 
 ---
 
 ## Critical codebase rules for implementers
 
-- **All onclick handlers must be `window.X = function`** — functions inside `<script>` are not globally scoped
+- **All onclick handlers must be `window.X = function`** — the Firebase JS SDK script is `type="module"`, so all functions must be explicitly assigned to `window.*` to be accessible from HTML onclick attributes
 - **Never use `innerHTML =` on user-controlled input** — build DOM elements programmatically
-- **Branch:** all work on `supabase-auth` branch, never `main`
-- **No npm packages** — use `fetch()` for Supabase REST API calls server-side
-- **`SUPABASE_SERVICE_ROLE_KEY` must never appear in `index.html`** — server-side only
+- **Branch:** all work on `supabase-auth` branch (worktree at `.worktrees/supabase-auth`), never `main`
+- **`FIREBASE_PRIVATE_KEY` must never appear in `index.html`** — server-side only
 - **Spec:** `docs/superpowers/specs/2026-03-15-supabase-auth-usage-design.md`
 
 ---
 
-## Chunk 1: Supabase setup + api/usage.js
+## Chunk 1: Firebase setup + api/usage.js
 
-### Task 1: Create branch + Supabase project + database schema
+### Task 1: Firebase project setup + package.json (MANUAL — user action required)
 
 **Files:**
-- No code changes — manual Supabase setup steps
+- Create: `package.json`
 
-- [ ] **Step 1: Create the feature branch**
+- [ ] **Step 1: Create Firebase project**
 
-```bash
-git checkout main && git pull
-git checkout -b supabase-auth
+1. Go to https://console.firebase.google.com → **Add project**
+2. Name: `plentymeals` (or similar), disable Google Analytics (not needed)
+3. Wait for provisioning
+
+- [ ] **Step 2: Enable Firebase Authentication**
+
+In Firebase Console → **Authentication → Get started**:
+- Enable **Google** provider (sign-in method)
+- Enable **Email/Password** provider → toggle **Email link (passwordless sign-in)** ON (this is separate from the password option)
+- Under **Settings → Authorized domains**, confirm `localhost` is listed and add `plenty-app-nine.vercel.app`
+
+- [ ] **Step 3: Enable Firestore**
+
+Firebase Console → **Firestore Database → Create database**:
+- Start in **production mode** (we use Admin SDK server-side, not client rules for writes)
+- Region: `nam5` (US central) or closest to your users
+- After creation, go to **Rules** tab and replace the default rules with:
+
+```
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /profiles/{userId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+    }
+    match /usage/{docId} {
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+  }
+}
 ```
 
-- [ ] **Step 2: Create Supabase project**
+Click **Publish**.
 
-1. Go to https://supabase.com, sign in, click "New project"
-2. Name: `plentymeals`, region: closest to your users (e.g. US East), generate a strong password
-3. Wait for project to finish provisioning (~2 min)
-4. Note your project URL and keys from **Settings → API**:
-   - `Project URL` → this is `SUPABASE_URL`
-   - `anon / public` key → this is `SUPABASE_ANON_KEY`
-   - `service_role / secret` key → this is `SUPABASE_SERVICE_ROLE_KEY` (keep secret)
+- [ ] **Step 4: Get the web app config (for frontend)**
 
-- [ ] **Step 3: Run the database schema SQL**
+Firebase Console → **Project settings (gear icon) → Your apps → Add app → Web**:
+- App nickname: `plenty-web`
+- Don't enable Firebase Hosting
+- Copy the `firebaseConfig` object — you'll need these values:
+  - `apiKey`
+  - `authDomain`
+  - `projectId`
 
-In the Supabase dashboard → **SQL Editor** → New query — paste and run this entire block:
+- [ ] **Step 5: Create service account key (for server-side)**
 
-```sql
--- ── profiles table (one row per user, plan defaults to 'free')
-CREATE TABLE profiles (
-  id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-  plan text NOT NULL DEFAULT 'free' CHECK (plan IN ('free', 'standard', 'unlimited')),
-  created_at timestamptz NOT NULL DEFAULT now()
-);
-ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Users can read own profile"
-  ON profiles FOR SELECT USING (auth.uid() = id);
+Firebase Console → **Project settings → Service accounts → Generate new private key**:
+- This downloads a JSON file
+- You need three values from it:
+  - `project_id` → `FIREBASE_PROJECT_ID`
+  - `client_email` → `FIREBASE_CLIENT_EMAIL`
+  - `private_key` → `FIREBASE_PRIVATE_KEY` (the full PEM string including `-----BEGIN PRIVATE KEY-----`)
 
--- ── usage table (one row per user per UTC day)
-CREATE TABLE usage (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  date date NOT NULL DEFAULT CURRENT_DATE,
-  count integer NOT NULL DEFAULT 0,
-  UNIQUE (user_id, date)
-);
-ALTER TABLE usage ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Users can read own usage"
-  ON usage FOR SELECT USING (auth.uid() = user_id);
+- [ ] **Step 6: Add env vars to `.env.local`**
 
--- ── Auto-create profile row on new signup
-CREATE OR REPLACE FUNCTION handle_new_user()
-RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER AS $$
-BEGIN
-  INSERT INTO public.profiles (id)
-  VALUES (new.id)
-  ON CONFLICT (id) DO NOTHING;
-  RETURN new;
-END;
-$$;
-CREATE TRIGGER on_auth_user_created
-  AFTER INSERT ON auth.users
-  FOR EACH ROW EXECUTE FUNCTION handle_new_user();
-
--- ── Atomic usage increment stored procedure
--- Returns: [{count: integer, limited: boolean}]
--- 'limited' = true means the limit was already reached (upsert did not fire)
-CREATE OR REPLACE FUNCTION increment_usage(p_user_id uuid, p_limit integer)
-RETURNS TABLE(count integer, limited boolean)
-LANGUAGE plpgsql SECURITY DEFINER AS $$
-DECLARE
-  v_count integer;
-  v_limited boolean;
-BEGIN
-  WITH upserted AS (
-    INSERT INTO usage (user_id, date, count)
-    VALUES (p_user_id, CURRENT_DATE, 1)
-    ON CONFLICT (user_id, date)
-    DO UPDATE SET count = usage.count + 1
-    WHERE usage.count < p_limit
-    RETURNING usage.count
-  )
-  SELECT upserted.count INTO v_count FROM upserted;
-
-  IF v_count IS NULL THEN
-    v_limited := true;
-    SELECT usage.count INTO v_count
-    FROM usage
-    WHERE user_id = p_user_id AND date = CURRENT_DATE;
-  ELSE
-    v_limited := false;
-  END IF;
-
-  RETURN QUERY SELECT v_count, v_limited;
-END;
-$$;
+Add to your project root `.env.local`:
+```
+FIREBASE_PROJECT_ID=your-project-id
+FIREBASE_CLIENT_EMAIL=firebase-adminsdk-xxxxx@your-project.iam.gserviceaccount.com
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nMIIE...\n-----END PRIVATE KEY-----\n"
 ```
 
-Expected: all statements complete with no errors.
-
-- [ ] **Step 4: Enable Google OAuth in Supabase**
-
-1. Supabase dashboard → **Authentication → Providers → Google** → toggle Enable
-2. You need a Google OAuth client ID and secret. Go to https://console.cloud.google.com:
-   - Create a new project (or use existing)
-   - APIs & Services → Credentials → Create credentials → OAuth client ID
-   - Application type: Web application
-   - Authorised redirect URIs: add `https://<your-project-ref>.supabase.co/auth/v1/callback`
-3. Paste Client ID and Client Secret back into the Supabase Google provider form → Save
-
-- [ ] **Step 5: Configure redirect URLs**
-
-Supabase dashboard → **Authentication → URL Configuration**:
-- Site URL: `https://plenty-app-nine.vercel.app`
-- Redirect URLs (add both):
-  - `http://localhost:3000`
-  - `https://plenty-app-nine.vercel.app`
-
-- [ ] **Step 6: Add env vars to local dev**
-
-Add to `.env.local` (create if it doesn't exist):
-```
-ANTHROPIC_API_KEY=<existing value>
-SUPABASE_URL=https://<your-project-ref>.supabase.co
-SUPABASE_ANON_KEY=<your-anon-key>
-SUPABASE_SERVICE_ROLE_KEY=<your-service-role-key>
-```
+**Important:** Wrap `FIREBASE_PRIVATE_KEY` in double quotes. The `\n` sequences must be literal backslash-n (not actual newlines) in the `.env.local` file.
 
 - [ ] **Step 7: Add env vars to Vercel dashboard**
 
-Vercel dashboard → your project → **Settings → Environment Variables** → add:
-- `SUPABASE_URL` — all environments
-- `SUPABASE_ANON_KEY` — all environments
-- `SUPABASE_SERVICE_ROLE_KEY` — all environments (this is secret — never put it in `index.html`)
+Vercel → your project → **Settings → Environment Variables** → add all three above (all environments). For `FIREBASE_PRIVATE_KEY`, paste the full PEM value exactly as it appears in the downloaded JSON file.
 
-- [ ] **Step 8: Commit the branch (no code yet — just note the setup)**
+- [ ] **Step 8: Create package.json**
+
+In the project root, create `package.json`:
+
+```json
+{
+  "name": "plenty-app",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "firebase-admin": "^12.0.0"
+  }
+}
+```
+
+- [ ] **Step 9: Install dependencies**
 
 ```bash
-git commit --allow-empty -m "chore: start supabase-auth branch — Supabase project created"
+cd .worktrees/supabase-auth
+npm install
+```
+
+Expected: `node_modules/` created with `firebase-admin` and its dependencies.
+
+- [ ] **Step 10: Commit**
+
+```bash
+git add package.json package-lock.json
+git commit -m "chore: add firebase-admin dependency"
 ```
 
 ---
@@ -171,7 +136,7 @@ git commit --allow-empty -m "chore: start supabase-auth branch — Supabase proj
 - Create: `api/usage.js`
 
 This file has two responsibilities:
-1. Named export `checkAndIncrementUsage(accessToken)` — imported by `api/meals.js`
+1. Named export `checkAndIncrementUsage(idToken)` — imported by `api/meals.js`
 2. Default export GET handler — called by frontend on app load to get current usage count
 
 - [ ] **Step 1: Create api/usage.js with full implementation**
@@ -183,6 +148,25 @@ This file has two responsibilities:
 //
 // GET /api/usage — returns { count, limit, plan } for authenticated user.
 // Frontend calls this on app load to populate the usage indicator.
+
+import { initializeApp, getApps, cert } from 'firebase-admin/app';
+import { getAuth } from 'firebase-admin/auth';
+import { getFirestore } from 'firebase-admin/firestore';
+
+// ── Initialise Firebase Admin (singleton — safe to call multiple times in Vercel)
+if (!getApps().length) {
+  initializeApp({
+    credential: cert({
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      // Vercel stores \n as literal \n in env vars — replace them
+      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n')
+    })
+  });
+}
+
+const adminAuth = getAuth();
+const db = getFirestore();
 
 // ── In-memory rate limiter (same pattern as meals.js / scan.js)
 const rateLimitMap = new Map();
@@ -204,95 +188,91 @@ function isRateLimited(ip) {
 
 const PLAN_LIMITS = { free: 2, standard: 15, unlimited: Infinity };
 
-// ── Supabase helpers (raw fetch — no npm dependency)
+// ── Get or create the user's profile document
+async function getUserPlan(uid) {
+  const ref = db.collection('profiles').doc(uid);
+  const snap = await ref.get();
+  if (!snap.exists) {
+    // First time this user hits the API — create their profile
+    await ref.set({ plan: 'free', createdAt: new Date().toISOString() });
+    return 'free';
+  }
+  return snap.data().plan || 'free';
+}
 
-async function getUser(accessToken) {
-  const res = await fetch(`${process.env.SUPABASE_URL}/auth/v1/user`, {
-    headers: {
-      'Authorization': `Bearer ${accessToken}`,
-      'apikey': process.env.SUPABASE_ANON_KEY
+// ── Today's date as YYYY-MM-DD (UTC)
+function todayUTC() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+// ── Atomic check-and-increment via Firestore transaction
+// Returns: { count, limited }
+async function atomicIncrement(uid, limit) {
+  const today = todayUTC();
+  const docId = `${uid}_${today}`;
+  const ref = db.collection('usage').doc(docId);
+
+  return db.runTransaction(async (tx) => {
+    const snap = await tx.get(ref);
+    const current = snap.exists ? (snap.data().count || 0) : 0;
+
+    if (current >= limit) {
+      return { count: current, limited: true };
     }
+
+    const newCount = current + 1;
+    tx.set(ref, { userId: uid, date: today, count: newCount }, { merge: true });
+    return { count: newCount, limited: false };
   });
-  if (!res.ok) return null;
-  return res.json();
 }
 
-async function getUserPlan(userId) {
-  const res = await fetch(
-    `${process.env.SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}&select=plan`,
-    {
-      headers: {
-        'Authorization': `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
-        'apikey': process.env.SUPABASE_SERVICE_ROLE_KEY
-      }
-    }
-  );
-  if (!res.ok) return 'free';
-  const rows = await res.json();
-  return rows[0]?.plan || 'free';
-}
-
-async function atomicIncrement(userId, limit) {
-  const res = await fetch(`${process.env.SUPABASE_URL}/rest/v1/rpc/increment_usage`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
-      'apikey': process.env.SUPABASE_SERVICE_ROLE_KEY
-    },
-    body: JSON.stringify({ p_user_id: userId, p_limit: limit })
-  });
-  if (!res.ok) return null; // fail open — usage write failure allows generation
-  const data = await res.json();
-  return data[0] || null; // Postgres function returns array of rows
-}
-
-async function getTodayCount(userId) {
-  const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD UTC
-  const res = await fetch(
-    `${process.env.SUPABASE_URL}/rest/v1/usage?user_id=eq.${userId}&date=eq.${today}&select=count`,
-    {
-      headers: {
-        'Authorization': `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
-        'apikey': process.env.SUPABASE_SERVICE_ROLE_KEY
-      }
-    }
-  );
-  if (!res.ok) return 0;
-  const rows = await res.json();
-  return rows[0]?.count || 0;
+// ── Get today's count without incrementing (used by GET /api/usage)
+async function getTodayCount(uid) {
+  const docId = `${uid}_${todayUTC()}`;
+  const snap = await db.collection('usage').doc(docId).get();
+  return snap.exists ? (snap.data().count || 0) : 0;
 }
 
 // ── Main exported function — used by api/meals.js
 // Returns one of:
 //   { error: 'unauthorized' }         — invalid/expired token
-//   { error: 'service_unavailable' }  — Supabase auth endpoint unreachable
+//   { error: 'service_unavailable' }  — Firebase auth unreachable
 //   { error: 'limit_reached' }        — daily limit already hit
 //   { count, limit, plan }            — success, proceed with generation
-export async function checkAndIncrementUsage(accessToken) {
-  // 1. Validate token — if Supabase auth is unreachable, fail closed (not open)
-  let user;
+export async function checkAndIncrementUsage(idToken) {
+  // 1. Validate token — if Firebase auth is unreachable, fail closed (not open)
+  let decodedToken;
   try {
-    user = await getUser(accessToken);
+    decodedToken = await adminAuth.verifyIdToken(idToken);
   } catch (e) {
-    return { error: 'service_unavailable' };
+    // verifyIdToken throws for invalid tokens AND for network errors
+    const isNetworkError = e.code === 'auth/network-request-failed';
+    return { error: isNetworkError ? 'service_unavailable' : 'unauthorized' };
   }
-  if (!user || !user.id) return { error: 'unauthorized' };
+  const uid = decodedToken.uid;
 
   // 2. Get user's plan
-  const plan = await getUserPlan(user.id);
+  let plan;
+  try {
+    plan = await getUserPlan(uid);
+  } catch (e) {
+    plan = 'free'; // fail open for profile read
+  }
   const limit = PLAN_LIMITS[plan] ?? 2;
 
   // 3. Unlimited plan — skip DB write entirely
   if (limit === Infinity) return { count: 0, limit: Infinity, plan };
 
   // 4. Atomic check-and-increment
-  const result = await atomicIncrement(user.id, limit);
-  if (!result) {
-    // DB write failed — fail open: allow generation, don't block user
-    console.error('[usage] atomicIncrement failed for user', user.id);
+  let result;
+  try {
+    result = await atomicIncrement(uid, limit);
+  } catch (e) {
+    // Firestore write failed — fail open: allow generation, don't block user
+    console.error('[usage] atomicIncrement failed for uid', uid, e.message);
     return { count: 0, limit, plan };
   }
+
   if (result.limited) return { error: 'limit_reached' };
   return { count: result.count, limit, plan };
 }
@@ -320,17 +300,20 @@ export default async function handler(req, res) {
   }
   const token = auth.slice(7);
 
-  let user;
+  let decodedToken;
   try {
-    user = await getUser(token);
+    decodedToken = await adminAuth.verifyIdToken(token);
   } catch (e) {
-    return res.status(503).json({ error: 'Service unavailable' });
+    const isNetworkError = e.code === 'auth/network-request-failed';
+    return res.status(isNetworkError ? 503 : 401).json({
+      error: isNetworkError ? 'Service unavailable' : 'Unauthorized'
+    });
   }
-  if (!user || !user.id) return res.status(401).json({ error: 'Unauthorized' });
+  const uid = decodedToken.uid;
 
-  const plan = await getUserPlan(user.id);
+  const plan = await getUserPlan(uid).catch(() => 'free');
   const limit = PLAN_LIMITS[plan] ?? 2;
-  const count = await getTodayCount(user.id);
+  const count = await getTodayCount(uid).catch(() => 0);
 
   return res.status(200).json({ count, limit, plan });
 }
@@ -348,7 +331,7 @@ Expected: no output (clean pass).
 
 ```bash
 git add api/usage.js
-git commit -m "feat: add api/usage.js — checkAndIncrementUsage + GET endpoint"
+git commit -m "feat: add api/usage.js — Firebase checkAndIncrementUsage + GET endpoint"
 ```
 
 ---
@@ -362,7 +345,7 @@ git commit -m "feat: add api/usage.js — checkAndIncrementUsage + GET endpoint"
 
 Changes required:
 1. Import `checkAndIncrementUsage` from `./usage.js`
-2. Add `Authorization` to `Access-Control-Allow-Headers` (currently only `Content-Type`)
+2. Add `Authorization` to `Access-Control-Allow-Headers`
 3. After rate limit check: extract Authorization header, call `checkAndIncrementUsage`, handle errors
 4. Include `usage: { count, limit }` in success responses
 
@@ -373,7 +356,7 @@ Add as the first line of the file:
 import { checkAndIncrementUsage } from './usage.js';
 ```
 
-- [ ] **Step 2: Update the CORS Allow-Headers line (line 48)**
+- [ ] **Step 2: Update the CORS Allow-Headers line**
 
 Change:
 ```javascript
@@ -384,7 +367,7 @@ To:
 res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 ```
 
-- [ ] **Step 3: Add usage check block after the rate limit block (after line 60)**
+- [ ] **Step 3: Add usage check block after the rate limit block**
 
 Insert this block after `if (isRateLimited(ip)) { ... }` and before `const body = req.body || {}`:
 
@@ -423,10 +406,10 @@ Insert this block after `if (isRateLimited(ip)) { ... }` and before `const body 
 Find the two `return res.status(200).json(...)` lines inside the try block and update them:
 
 ```javascript
-// Line ~110 — clean parse success:
+// clean parse success:
 return res.status(200).json({ clean: true, parsed, usage: usageData });
 
-// Line ~112 — raw fallback:
+// raw fallback:
 return res.status(200).json({ clean: false, raw: jsonStr, usage: usageData });
 ```
 
@@ -462,7 +445,7 @@ Open `index.html`. Search for `.scan-error` CSS rule (the last rule added in the
 
 ```css
     /* ── Auth chip ── */
-    /* Note: .hero-content { position: relative } already exists in the CSS — do not add it again */
+    /* Note: .hero-content already has position:relative — do not add it again */
     .auth-chip {
       position: absolute;
       top: 12px;
@@ -680,15 +663,26 @@ git commit -m "feat: add auth CSS to index.html"
 
 Four HTML additions needed:
 
-**A. Supabase CDN script** — in `<head>`, before the closing `</head>` tag:
+**A. Firebase CDN scripts** — in `<head>`, before the closing `</head>` tag:
 
-- [ ] **Step 1: Add Supabase script tag to `<head>`**
+- [ ] **Step 1: Add Firebase script tags to `<head>`**
 
 Find the closing `</head>` tag and insert before it:
 
 ```html
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.min.js"></script>
+  <!-- Firebase JS SDK v10 (ES modules from CDN) -->
+  <script type="module" src="/firebase-init.js"></script>
 ```
+
+Wait — Firebase v10 is ES module only and cannot be loaded as a plain script tag with `window` globals the same way Supabase's UMD bundle could. Instead, use an **inline module script** in `index.html`. Replace the above with this inline approach (add just before `</body>`, not `</head>`, so the DOM is ready):
+
+Actually, place the Firebase module script as the **very first** `<script type="module">` tag just before the closing `</body>` tag, **before** the existing inline `<script>` block (which must remain `type="text/javascript"` or no type). See Task 6 Step 1 for the full Firebase init script — the HTML placeholder here is just a marker comment:
+
+```html
+  <!-- Firebase auth module script inserted here in Task 6 -->
+```
+
+Add this comment just before the closing `</body>` tag as a placeholder. The actual Firebase script is added in Task 6.
 
 **B. Auth chip** — inside `.hero-content`, as the last child before its closing tag:
 
@@ -697,10 +691,10 @@ Find the closing `</head>` tag and insert before it:
 Search for `class="hero-content"`. Inside that div, add as the last child:
 
 ```html
-        <div id="authChip" class="auth-chip" style="display:none" onclick="toggleSignOutDropdown()">
+        <div id="authChip" class="auth-chip" style="display:none" onclick="window.toggleSignOutDropdown()">
           <div id="authInitial" class="auth-initial"></div>
           <span id="authEmailText" class="auth-email-text"></span>
-          <div id="authSignOutDropdown" class="auth-signout-dropdown" style="display:none" onclick="signOut()">Sign out</div>
+          <div id="authSignOutDropdown" class="auth-signout-dropdown" style="display:none" onclick="window.signOut()">Sign out</div>
         </div>
 ```
 
@@ -714,22 +708,22 @@ Search for `id="generateBtn"`. Immediately after that button's closing tag, add:
       <p id="usageIndicator" class="usage-indicator" style="display:none"></p>
 ```
 
-**D. Login and paywall modals** — just before the closing `</body>` tag:
+**D. Login and paywall modals** — just before the closing `</body>` tag (after the placeholder comment added in Step 1):
 
 - [ ] **Step 4: Add both modals before `</body>`**
 
 ```html
   <!-- ── Login modal ── -->
-  <div id="loginModal" class="auth-modal-backdrop" style="display:none" onclick="handleLoginBackdropClick(event)">
+  <div id="loginModal" class="auth-modal-backdrop" style="display:none" onclick="window.handleLoginBackdropClick(event)">
     <div class="auth-modal-card">
       <div class="auth-modal-icon">🌿</div>
       <h3 class="auth-modal-title">You're on a roll!</h3>
       <p class="auth-modal-subtitle">Save your spot and keep the ideas coming — free account, 30 seconds.</p>
-      <button class="auth-btn-primary" onclick="signInWithGoogle()">Continue with Google</button>
-      <button class="auth-btn-secondary" onclick="showEmailInput()">Continue with Email</button>
+      <button class="auth-btn-primary" onclick="window.signInWithGoogle()">Continue with Google</button>
+      <button class="auth-btn-secondary" onclick="window.showEmailInput()">Continue with Email</button>
       <div id="emailInputArea" style="display:none">
         <input type="email" id="magicLinkEmail" class="auth-email-input" placeholder="your@email.com">
-        <button class="auth-btn-send" onclick="sendMagicLink()">Send magic link →</button>
+        <button class="auth-btn-send" onclick="window.sendMagicLink()">Send magic link →</button>
         <p id="magicLinkSent" class="auth-magic-sent" style="display:none">Check your inbox ✉️</p>
       </div>
       <p class="auth-modal-note">No password needed · Free forever</p>
@@ -737,7 +731,7 @@ Search for `id="generateBtn"`. Immediately after that button's closing tag, add:
   </div>
 
   <!-- ── Paywall modal ── -->
-  <div id="paywallModal" class="auth-modal-backdrop" style="display:none" onclick="handlePaywallBackdropClick(event)">
+  <div id="paywallModal" class="auth-modal-backdrop" style="display:none" onclick="window.handlePaywallBackdropClick(event)">
     <div class="auth-modal-card">
       <div class="auth-modal-icon">🌿</div>
       <h3 class="auth-modal-title">You're eating well today!</h3>
@@ -761,15 +755,7 @@ Search for `id="generateBtn"`. Immediately after that button's closing tag, add:
   </div>
 ```
 
-- [ ] **Step 5: Open in browser, verify no JS console errors on load**
-
-```bash
-vercel dev
-```
-
-Open http://localhost:3000. Console should be clean (no "supabase is not defined" errors since the CDN script loads synchronously before the inline script).
-
-- [ ] **Step 6: Commit**
+- [ ] **Step 5: Commit**
 
 ```bash
 git add index.html
@@ -780,48 +766,60 @@ git commit -m "feat: add auth + paywall HTML to index.html"
 
 ## Chunk 4: index.html — JavaScript
 
-### Task 6: Add auth JS + update generateMeals in index.html
+### Task 6: Add Firebase auth JS + update generateMeals in index.html
 
 **Files:**
-- Modify: `index.html` (JS section inside `<script>` block)
+- Modify: `index.html` (add one `<script type="module">` block + update existing `<script>` block)
 
-All new JS is added before the closing `</script>` tag, same as the scan functions.
+**Important:** Firebase v10 uses ES module imports. All auth code goes in a `<script type="module">` block. The existing inline `<script>` block (no type, or `type="text/javascript"`) is separate and cannot import ES modules. Functions needed by onclick handlers must be explicitly assigned to `window.*` inside the module script.
 
-- [ ] **Step 1: Add Supabase init + auth state variables**
+- [ ] **Step 1: Add the Firebase module script**
 
-Add at the start of the new JS block (after existing code, before `</script>`):
+Find the `<!-- Firebase auth module script inserted here in Task 6 -->` comment added in Task 5 Step 1. Replace that comment with this full module script:
 
-```javascript
-    // ── Supabase auth ──────────────────────────────────────────
-    // Public keys — safe to hardcode in frontend. Service role key is NEVER here.
-    var SUPABASE_URL = 'REPLACE_WITH_YOUR_SUPABASE_URL';
-    var SUPABASE_ANON_KEY = 'REPLACE_WITH_YOUR_SUPABASE_ANON_KEY';
-    var supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+```html
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+    import {
+      getAuth,
+      GoogleAuthProvider,
+      signInWithPopup,
+      sendSignInLinkToEmail,
+      isSignInWithEmailLink,
+      signInWithEmailLink,
+      onAuthStateChanged,
+      signOut as firebaseSignOut
+    } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 
-    var currentSession = null;
-    var currentUsagePlan = 'free';
-```
+    // ── Firebase config (public values — safe to hardcode)
+    const firebaseConfig = {
+      apiKey: 'REPLACE_WITH_YOUR_FIREBASE_API_KEY',
+      authDomain: 'REPLACE_WITH_YOUR_AUTH_DOMAIN',
+      projectId: 'REPLACE_WITH_YOUR_PROJECT_ID'
+    };
 
-Replace `REPLACE_WITH_YOUR_SUPABASE_URL` and `REPLACE_WITH_YOUR_SUPABASE_ANON_KEY` with the actual values from your Supabase project.
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const googleProvider = new GoogleAuthProvider();
 
-- [ ] **Step 2: Add anonymous counter helpers**
+    // ── State (shared with the existing script via window globals)
+    window._firebaseAuth = auth;
+    window._currentUser = null;
+    window._currentUsagePlan = 'free';
 
-```javascript
-    function getAnonCount() {
+    // ── Anonymous counter helpers
+    window.getAnonCount = function() {
       return parseInt(localStorage.getItem('plenty_anon_count') || '0', 10);
-    }
-    function incrementAnonCount() {
-      localStorage.setItem('plenty_anon_count', String(getAnonCount() + 1));
-    }
-    function resetAnonCount() {
+    };
+    window.incrementAnonCount = function() {
+      localStorage.setItem('plenty_anon_count', String(window.getAnonCount() + 1));
+    };
+    window.resetAnonCount = function() {
       localStorage.removeItem('plenty_anon_count');
-    }
-```
+    };
 
-- [ ] **Step 3: Add auth chip functions**
-
-```javascript
-    function renderAuthChip(user) {
+    // ── Auth chip
+    window.renderAuthChip = function(user) {
       var emailStr = (user && user.email) ? user.email : '';
       var el = document.getElementById('authInitial');
       if (el) el.textContent = emailStr.charAt(0).toUpperCase();
@@ -829,60 +827,51 @@ Replace `REPLACE_WITH_YOUR_SUPABASE_URL` and `REPLACE_WITH_YOUR_SUPABASE_ANON_KE
       if (emailEl) emailEl.textContent = emailStr.length > 20 ? emailStr.slice(0, 20) + '\u2026' : emailStr;
       var chip = document.getElementById('authChip');
       if (chip) chip.style.display = 'flex';
-    }
-
-    function hideAuthChip() {
+    };
+    window.hideAuthChip = function() {
       var chip = document.getElementById('authChip');
       if (chip) chip.style.display = 'none';
       var dropdown = document.getElementById('authSignOutDropdown');
       if (dropdown) dropdown.style.display = 'none';
-    }
-
+    };
     window.toggleSignOutDropdown = function() {
       var dropdown = document.getElementById('authSignOutDropdown');
       if (!dropdown) return;
       dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
     };
-```
 
-- [ ] **Step 4: Add usage indicator functions**
-
-```javascript
-    function updateUsageIndicator(count, limit, plan) {
-      currentUsagePlan = plan || 'free';
+    // ── Usage indicator
+    window.updateUsageIndicator = function(count, limit, plan) {
+      window._currentUsagePlan = plan || 'free';
       var el = document.getElementById('usageIndicator');
       if (!el) return;
-      if (!currentSession || plan !== 'free') { el.style.display = 'none'; return; }
+      if (!window._currentUser || plan !== 'free') { el.style.display = 'none'; return; }
       el.textContent = count + ' of ' + limit + ' free meal plans used today';
       el.style.display = 'block';
-    }
-
-    function hideUsageIndicator() {
+    };
+    window.hideUsageIndicator = function() {
       var el = document.getElementById('usageIndicator');
       if (el) el.style.display = 'none';
-    }
-
-    async function fetchAndRenderUsage(accessToken) {
+    };
+    window.fetchAndRenderUsage = async function() {
+      if (!window._currentUser) return;
       try {
+        var token = await window._currentUser.getIdToken();
         var res = await fetch('/api/usage', {
-          headers: { 'Authorization': 'Bearer ' + accessToken }
+          headers: { 'Authorization': 'Bearer ' + token }
         });
         if (res.ok) {
           var data = await res.json();
-          updateUsageIndicator(data.count, data.limit, data.plan);
+          window.updateUsageIndicator(data.count, data.limit, data.plan);
         }
       } catch (e) { /* non-critical — indicator stays hidden */ }
-    }
-```
+    };
 
-- [ ] **Step 5: Add login modal functions**
-
-```javascript
+    // ── Login modal
     window.showLoginModal = function() {
       var modal = document.getElementById('loginModal');
       if (modal) modal.style.display = 'flex';
     };
-
     window.hideLoginModal = function() {
       var modal = document.getElementById('loginModal');
       if (modal) modal.style.display = 'none';
@@ -893,47 +882,46 @@ Replace `REPLACE_WITH_YOUR_SUPABASE_URL` and `REPLACE_WITH_YOUR_SUPABASE_ANON_KE
       var sent = document.getElementById('magicLinkSent');
       if (sent) sent.style.display = 'none';
     };
-
     window.handleLoginBackdropClick = function(e) {
       if (e.target && e.target.id === 'loginModal') window.hideLoginModal();
     };
-
     window.signInWithGoogle = async function() {
-      await supabaseClient.auth.signInWithOAuth({
-        provider: 'google',
-        options: { redirectTo: window.location.origin }
-      });
+      try {
+        await signInWithPopup(auth, googleProvider);
+        // onAuthStateChanged fires and handles the rest
+      } catch (e) {
+        if (e.code !== 'auth/popup-closed-by-user') {
+          console.error('[auth] Google sign-in error', e.message);
+        }
+      }
     };
-
     window.showEmailInput = function() {
       var area = document.getElementById('emailInputArea');
       if (area) area.style.display = 'block';
     };
-
     window.sendMagicLink = async function() {
       var emailEl = document.getElementById('magicLinkEmail');
       var email = emailEl ? emailEl.value.trim() : '';
       if (!email) return;
-      var result = await supabaseClient.auth.signInWithOtp({
-        email: email,
-        options: { emailRedirectTo: window.location.origin }
-      });
-      if (!result.error) {
+      var actionCodeSettings = {
+        url: window.location.origin,
+        handleCodeInApp: true
+      };
+      try {
+        await sendSignInLinkToEmail(auth, email, actionCodeSettings);
+        localStorage.setItem('plenty_email_for_signin', email);
         var sent = document.getElementById('magicLinkSent');
         if (sent) sent.style.display = 'block';
+      } catch (e) {
+        console.error('[auth] send magic link error', e.message);
       }
     };
-```
 
-- [ ] **Step 6: Add paywall modal functions**
-
-```javascript
+    // ── Paywall modal
     window.showPaywallModal = function(resetsAt) {
       var modal = document.getElementById('paywallModal');
       if (!modal) return;
       modal.style.display = 'flex';
-
-      // Format prices using browser locale for correct currency symbol
       var locale = navigator.language || 'en-US';
       var currencyMap = { 'en-CA': 'CAD', 'fr-CA': 'CAD', 'en-GB': 'GBP', 'en-AU': 'AUD', 'en-NZ': 'NZD' };
       var currency = currencyMap[locale] || 'USD';
@@ -942,80 +930,73 @@ Replace `REPLACE_WITH_YOUR_SUPABASE_URL` and `REPLACE_WITH_YOUR_SUPABASE_ANON_KE
       if (stdEl) stdEl.textContent = fmt.format(4.99) + '/mo';
       var unlEl = document.getElementById('paywallPriceUnlimited');
       if (unlEl) unlEl.textContent = fmt.format(9.99) + '/mo';
-
-      // Show server-authoritative reset time (not client-computed)
       if (resetsAt) {
         var resetTime = new Date(resetsAt).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
         var noteEl = document.getElementById('paywallResetNote');
         if (noteEl) noteEl.textContent = 'Your 2 free plans reset at ' + resetTime;
       }
     };
-
     window.handlePaywallBackdropClick = function(e) {
       if (e.target && e.target.id === 'paywallModal') {
         var modal = document.getElementById('paywallModal');
         if (modal) modal.style.display = 'none';
       }
     };
-```
 
-- [ ] **Step 7: Add sign out function**
-
-```javascript
+    // ── Sign out
     window.signOut = async function() {
-      await supabaseClient.auth.signOut();
-      currentSession = null;
-      currentUsagePlan = 'free';
-      resetAnonCount();
-      hideAuthChip();
-      hideUsageIndicator();
+      await firebaseSignOut(auth);
+      window._currentUser = null;
+      window._currentUsagePlan = 'free';
+      window.resetAnonCount();
+      window.hideAuthChip();
+      window.hideUsageIndicator();
     };
-```
 
-- [ ] **Step 8: Add auth state listener + session restore (must be the last auth JS added)**
+    // ── Handle email link sign-in on page load (must check before onAuthStateChanged)
+    if (isSignInWithEmailLink(auth, window.location.href)) {
+      var emailForSignIn = localStorage.getItem('plenty_email_for_signin');
+      if (emailForSignIn) {
+        signInWithEmailLink(auth, emailForSignIn, window.location.href)
+          .then(function() {
+            localStorage.removeItem('plenty_email_for_signin');
+            // Clean up URL
+            window.history.replaceState({}, document.title, window.location.pathname);
+          })
+          .catch(function(e) { console.error('[auth] email link sign-in error', e.message); });
+      }
+    }
 
-```javascript
-    // Register auth state change listener FIRST — handles Google OAuth callback + magic link redirect
-    supabaseClient.auth.onAuthStateChange(async function(event, session) {
-      currentSession = session;
-      if (session) {
-        renderAuthChip(session.user);
-        await fetchAndRenderUsage(session.access_token);
+    // ── Auth state listener
+    onAuthStateChanged(auth, async function(user) {
+      window._currentUser = user;
+      if (user) {
+        window.renderAuthChip(user);
+        await window.fetchAndRenderUsage();
         window.hideLoginModal();
       } else {
-        hideAuthChip();
-        hideUsageIndicator();
+        window.hideAuthChip();
+        window.hideUsageIndicator();
       }
     });
-
-    // Restore persisted session on page load
-    supabaseClient.auth.getSession().then(function(result) {
-      var session = result && result.data && result.data.session;
-      if (session) {
-        currentSession = session;
-        renderAuthChip(session.user);
-        fetchAndRenderUsage(session.access_token);
-      }
-    });
+  </script>
 ```
 
-- [ ] **Step 9: Update generateMeals to add auth header, anon gate, and handle new error codes**
+Replace `REPLACE_WITH_YOUR_FIREBASE_API_KEY`, `REPLACE_WITH_YOUR_AUTH_DOMAIN`, and `REPLACE_WITH_YOUR_PROJECT_ID` with your actual Firebase project values.
 
-Find the `window.generateMeals` function. Make the following targeted changes:
+- [ ] **Step 2: Update generateMeals — add anon gate at the top**
 
-**9a. Add anon gate at the top of the function, before any other logic:**
-
-After `window.generateMeals = async function() {`, insert:
+Find `window.generateMeals = async function() {`. Insert immediately after the opening brace:
 
 ```javascript
     // Gate anonymous users after 2 tries
-    if (!currentSession && getAnonCount() >= 2) {
+    if (!window._currentUser && window.getAnonCount() >= 2) {
       window.showLoginModal();
       return;
     }
 ```
 
-**9b. Add Authorization header to the fetch call:**
+- [ ] **Step 3: Update generateMeals — add Authorization header to fetch**
 
 Find the `fetch('/api/meals', {` call. Change the `headers` object from:
 ```javascript
@@ -1023,15 +1004,42 @@ headers: { 'Content-Type': 'application/json' },
 ```
 to:
 ```javascript
-headers: Object.assign(
-  { 'Content-Type': 'application/json' },
-  currentSession ? { 'Authorization': 'Bearer ' + currentSession.access_token } : {}
-),
+headers: (function() {
+  var h = { 'Content-Type': 'application/json' };
+  if (window._currentUser) {
+    // getIdToken() is async — we store the token before calling fetch
+    // See Step 4 for the token pre-fetch
+  }
+  return h;
+})(),
 ```
 
-**9c. Add 401 and limit_reached handling after `const data = await response.json()`:**
+Actually, because `getIdToken()` is async and the headers object is built inline, use a pre-fetch approach. **Replace Steps 3 and 4 with this combined approach:**
 
-Insert before the existing `if (!response.ok) throw new Error(...)` line:
+Find the line that starts the fetch call (something like `const response = await fetch('/api/meals', {`) and replace the entire fetch setup with:
+
+```javascript
+      // Get fresh ID token for authenticated users
+      var authHeaders = {};
+      if (window._currentUser) {
+        try {
+          var idToken = await window._currentUser.getIdToken();
+          authHeaders = { 'Authorization': 'Bearer ' + idToken };
+        } catch (e) { /* token fetch failed — proceed as anonymous */ }
+      }
+
+      const response = await fetch('/api/meals', {
+        method: 'POST',
+        headers: Object.assign({ 'Content-Type': 'application/json' }, authHeaders),
+        body: JSON.stringify({ ... })  // keep existing body unchanged
+      });
+```
+
+**Important:** Keep the `body: JSON.stringify(...)` line exactly as it was — only modify the `headers` line.
+
+- [ ] **Step 4: Update generateMeals — add 401 and limit_reached handling**
+
+Find `const data = await response.json()`. Insert after it (before the existing `if (!response.ok) throw new Error(...)` line):
 
 ```javascript
       // Handle usage limit reached
@@ -1047,38 +1055,43 @@ Insert before the existing `if (!response.ok) throw new Error(...)` line:
         clearTimeout(slowTimer);
         document.getElementById('loadingState').classList.remove('active');
         document.getElementById('generateBtn').style.display = 'flex';
-        await supabaseClient.auth.signOut();
-        currentSession = null;
-        hideAuthChip();
+        if (window._firebaseAuth) await firebaseSignOut(window._firebaseAuth).catch(() => {});
+        window._currentUser = null;
+        window.hideAuthChip();
         window.showLoginModal();
         return;
       }
 ```
 
-**9d. Increment anon counter + update usage indicator on success:**
+**Note:** `firebaseSignOut` is not in scope inside the existing script block. Replace the sign-out call with:
+```javascript
+        if (window.signOut) await window.signOut();
+```
 
-After the `renderResults(...)` call in the success path, add:
+- [ ] **Step 5: Update generateMeals — increment anon count + update usage indicator on success**
+
+Find the `renderResults(...)` call in the success path. After it, add:
 
 ```javascript
       // Track anonymous usage
-      if (!currentSession) incrementAnonCount();
+      if (!window._currentUser) window.incrementAnonCount();
       // Update usage indicator for logged-in free users
-      if (data.usage) updateUsageIndicator(data.usage.count, data.usage.limit, currentUsagePlan);
+      if (data.usage) window.updateUsageIndicator(data.usage.count, data.usage.limit, window._currentUsagePlan);
 ```
 
-- [ ] **Step 10: Verify in browser**
+- [ ] **Step 6: Verify in browser**
 
 ```bash
 vercel dev
 ```
 
-Open http://localhost:3000 — browser DevTools console must be clean (no "supabase is not defined", no TypeError, no syntax errors). Note: at this stage Google OAuth requires a deployed URL; magic link works on localhost.
+Open http://localhost:3000 — browser DevTools console must be clean (no auth errors, no "window.getAnonCount is not a function", no Firebase init errors). The Firebase module script loads asynchronously so functions on `window.*` are available after the module executes.
 
-- [ ] **Step 11: Commit**
+- [ ] **Step 7: Commit**
 
 ```bash
 git add index.html
-git commit -m "feat: add auth JS + update generateMeals for Supabase auth + usage"
+git commit -m "feat: add Firebase auth JS + update generateMeals"
 ```
 
 ---
@@ -1100,63 +1113,61 @@ Open http://localhost:3000.
 
 - [ ] **Step 2: Test anonymous limit gate**
 
-1. Open browser DevTools → Application → Local Storage → clear `plenty_anon_count`
-2. Add 2 ingredients → Generate meals twice → both should succeed
+1. Open DevTools → Application → Local Storage → clear `plenty_anon_count`
+2. Add ingredients → Generate meals twice → both should succeed
 3. Try to generate a 3rd time → login modal should appear with 🌿 icon, Google button, Email button
-4. Click backdrop → modal closes, form still accessible
-5. Try Generate again → login modal should re-appear
+4. Click backdrop → modal closes
+5. Try Generate again → login modal re-appears
 
 Expected: ✅ modal appears on 3rd anonymous attempt
 
 - [ ] **Step 3: Test email magic link flow**
 
 1. In the login modal, click "Continue with Email"
-2. Email input area should appear
-3. Enter a real email address → click "Send magic link"
-4. Should see "Check your inbox ✉️" message
-5. Check the email inbox — click the magic link
-6. Should redirect back to the app with session active
-7. Auth chip should appear top-right with your initial + email
-8. Usage indicator should appear below generate button: "0 of 2 free meal plans used today"
+2. Email input area appears
+3. Enter a real email → click "Send magic link"
+4. See "Check your inbox ✉️" message
+5. Check email inbox — click the link
+6. App reopens with session active
+7. Auth chip appears top-right
+8. Usage indicator shows "0 of 2 free meal plans used today"
 
 Expected: ✅ auth chip visible, usage indicator shows 0 of 2
 
 - [ ] **Step 4: Test usage tracking**
 
 1. While logged in, generate 2 meals
-2. After each generation, usage indicator should increment: "1 of 2...", then "2 of 2..."
-3. Generate a 3rd time → paywall modal should appear with plan pricing in correct currency (CAD for Canadian locale)
-4. Paywall modal should show the reset time from the server
+2. Usage indicator increments: "1 of 2...", then "2 of 2..."
+3. Generate a 3rd time → paywall modal appears with plan pricing in correct currency (CAD for Canadian locale)
+4. Paywall modal shows the reset time from the server
 5. Click backdrop → modal closes
 
 Expected: ✅ paywall appears on 3rd logged-in generation
 
 - [ ] **Step 5: Test sign out**
 
-1. Click the auth chip → "Sign out" dropdown appears
+1. Click auth chip → "Sign out" dropdown appears
 2. Click "Sign out"
 3. Auth chip hides, usage indicator hides
-4. `plenty_anon_count` should be reset to 0 (check DevTools → Local Storage)
+4. `plenty_anon_count` reset to 0 in DevTools → Local Storage
 
 Expected: ✅ clean sign-out state
 
-- [ ] **Step 6: Test Google OAuth (production only — requires deployed URL)**
+- [ ] **Step 6: Test Google OAuth (works on localhost with popup)**
 
-Push branch to GitHub and wait for Vercel preview deploy:
+1. On http://localhost:3000, click Generate 3 times to trigger login modal
+2. Click "Continue with Google" → Google sign-in popup appears
+3. Complete sign-in → popup closes, auth chip appears, usage indicator shows
 
-```bash
-git push -u origin supabase-auth
-```
+Expected: ✅ Google sign-in works
 
-Open the preview URL. Test Google sign-in — should redirect through Google and return to the app with session active.
-
-- [ ] **Step 7: Verify backend file syntax**
+- [ ] **Step 7: Run node --check on backend files**
 
 ```bash
 node --check api/usage.js && node --check api/meals.js && echo "✅ all clear"
 ```
 
-Expected: `✅ all clear` (Note: `node --check` works correctly on `.js` files; do not run it on `index.html`)
+Expected: `✅ all clear`
 
 - [ ] **Step 8: Merge to main**
 

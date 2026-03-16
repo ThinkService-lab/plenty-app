@@ -131,7 +131,7 @@ There is no Vercel function for feedback. The frontend calls the Google Apps Scr
 
 ---
 
-## Supabase auth + usage tracking (branch: `supabase-auth`)
+## Firebase auth + usage tracking (branch: `supabase-auth`)
 
 **Status:** Implementation plan ready — not yet executed. Branch does not exist yet.
 
@@ -141,24 +141,30 @@ There is no Vercel function for feedback. The frontend calls the Google Apps Scr
 - Google OAuth + email magic link login (no password)
 - Paywall modal on limit hit; shows server-authoritative reset time from `resets_at` field in the 429 response
 - Currency auto-detected from browser locale (`en-CA` → CAD, `en-GB` → GBP, etc.)
+- Backend: **Firebase** (originally Supabase, migrated due to free tier limits)
 
-**New Supabase env vars (required in `.env.local` and Vercel dashboard before the branch can run):**
-- `SUPABASE_URL` — public, safe in `index.html`
-- `SUPABASE_ANON_KEY` — public, safe in `index.html`
-- `SUPABASE_SERVICE_ROLE_KEY` — **secret, server-side only, never in `index.html`**
+**Firebase env vars (required in `.env.local` and Vercel dashboard before the branch can run):**
+- `FIREBASE_PROJECT_ID` — server-side only
+- `FIREBASE_CLIENT_EMAIL` — server-side only (service account)
+- `FIREBASE_PRIVATE_KEY` — **secret, server-side only, never in `index.html`**
+- Firebase web config (`apiKey`, `authDomain`, `projectId`) — hardcoded in `index.html` (public, safe to expose)
+
+**npm dependency:** `firebase-admin` added to `package.json` (only new dependency)
 
 **Key implementation files:**
 - Plan: `docs/superpowers/plans/2026-03-15-supabase-auth-usage.md`
 - Spec: `docs/superpowers/specs/2026-03-15-supabase-auth-usage-design.md`
 
-**To resume implementation:** run `superpowers:subagent-driven-development` on the plan above, starting with Task 1 (create `supabase-auth` branch + Supabase project setup).
+**To resume implementation:** run `superpowers:subagent-driven-development` on the plan above, starting with Task 1 (Firebase project setup — manual dashboard steps).
 
-**Supabase JS on frontend:** loaded from CDN at pinned version — no npm packages added:
+**Firebase JS on frontend:** ES module imports from Google CDN at pinned version:
 ```
-https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.min.js
+https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js
+https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js
 ```
+Loaded via `<script type="module">` — all functions assigned to `window.*` for onclick access.
 
-**Server-side Supabase calls:** raw `fetch()` against Supabase REST endpoints — no npm dependency.
+**Server-side:** `firebase-admin` npm package handles token verification and Firestore transactions.
 
 **Do not use `node --check` on `index.html`** — Node can't parse HTML files. Use `vercel dev` and check the browser console instead. `node --check` is valid for `.js` files only.
 
