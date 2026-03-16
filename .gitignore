@@ -3,3 +3,4 @@
 .superpowers/
 .claude/
 .worktrees/
+node_modules/
