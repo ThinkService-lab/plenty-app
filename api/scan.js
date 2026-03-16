@@ -1,3 +1,17 @@
+import { initializeApp, getApps, cert } from 'firebase-admin/app';
+import { getAppCheck } from 'firebase-admin/app-check';
+
+// ── Initialise Firebase Admin (singleton — same pattern as usage.js)
+if (!getApps().length) {
+  initializeApp({
+    credential: cert({
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n')
+    })
+  });
+}
+
 // ── In-memory rate limiter (resets on cold start — same pattern as api/meals.js)
 const rateLimitMap = new Map();
 const RATE_LIMIT = 10;        // max requests
@@ -30,9 +44,20 @@ export default async function handler(req, res) {
   // ── CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Firebase-AppCheck');
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  // ── App Check verification
+  const appCheckToken = req.headers['x-firebase-appcheck'];
+  if (!appCheckToken) {
+    return res.status(401).json({ error: 'Unauthorized request.' });
+  }
+  try {
+    await getAppCheck().verifyToken(appCheckToken);
+  } catch (e) {
+    return res.status(401).json({ error: 'Unauthorized request.' });
+  }
 
   // ── Rate limiting
   const ip =

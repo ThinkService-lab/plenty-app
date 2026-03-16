@@ -1719,6 +1719,10 @@ Exactly 3 meals. Only use provided ingredients. If the chosen cuisine does not n
           _authHeaders = { 'Authorization': 'Bearer ' + _idToken };
         } catch (e) { /* token fetch failed — proceed as anonymous */ }
       }
+      // Get App Check token
+      var _appCheckToken = typeof window.getAppCheckToken === 'function' ? await window.getAppCheckToken() : null;
+      if (_appCheckToken) _authHeaders['X-Firebase-AppCheck'] = _appCheckToken;
+
       const response = await fetch('/api/meals', {
         method: 'POST',
         headers: Object.assign({ 'Content-Type': 'application/json' }, _authHeaders),
@@ -2144,9 +2148,13 @@ Exactly 3 meals. Only use provided ingredients. If the chosen cuisine does not n
         showScanError();
         return;
       }
+      var _scanAppCheckToken = typeof window.getAppCheckToken === 'function' ? await window.getAppCheckToken() : null;
+      var _scanHeaders = { 'Content-Type': 'application/json' };
+      if (_scanAppCheckToken) _scanHeaders['X-Firebase-AppCheck'] = _scanAppCheckToken;
+
       var response = await fetch('/api/scan', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: _scanHeaders,
         body: JSON.stringify({ image: resized.base64, mimeType: resized.mimeType })
       });
       var data = await response.json();
@@ -2227,7 +2235,7 @@ Exactly 3 meals. Only use provided ingredients. If the chosen cuisine does not n
 
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-    import { initializeAppCheck, ReCaptchaV3Provider } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app-check.js';
+    import { initializeAppCheck, ReCaptchaV3Provider, getToken } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app-check.js';
     import {
       getAuth,
       GoogleAuthProvider,
@@ -2250,10 +2258,20 @@ Exactly 3 meals. Only use provided ingredients. If the chosen cuisine does not n
     const app = initializeApp(firebaseConfig);
 
     // ── App Check (reCAPTCHA v3) — must initialise before any Firebase service
-    initializeAppCheck(app, {
+    const appCheck = initializeAppCheck(app, {
       provider: new ReCaptchaV3Provider('6LctSIwsAAAAAHHuXMB2TdcOTZNLfFlGrL6S1R95'),
       isTokenAutoRefreshEnabled: true
     });
+
+    // Helper — gets a fresh App Check token to attach to Vercel API calls
+    window.getAppCheckToken = async function() {
+      try {
+        const result = await getToken(appCheck, false);
+        return result.token;
+      } catch (e) {
+        return null;
+      }
+    };
 
     const auth = getAuth(app);
     const googleProvider = new GoogleAuthProvider();

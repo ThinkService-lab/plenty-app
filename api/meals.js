@@ -1,4 +1,5 @@
 import { checkAndIncrementUsage } from './usage.js';
+import { getAppCheck } from 'firebase-admin/app-check';
 
 // ── In-memory rate limiter (resets on cold start, good enough for serverless)
 const rateLimitMap = new Map();
@@ -47,9 +48,20 @@ export default async function handler(req, res) {
   // ── CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Firebase-AppCheck');
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  // ── App Check verification
+  const appCheckToken = req.headers['x-firebase-appcheck'];
+  if (!appCheckToken) {
+    return res.status(401).json({ error: 'Unauthorized request.' });
+  }
+  try {
+    await getAppCheck().verifyToken(appCheckToken);
+  } catch (e) {
+    return res.status(401).json({ error: 'Unauthorized request.' });
+  }
 
   // ── Rate limiting
   const ip =
