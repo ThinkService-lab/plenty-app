@@ -2227,6 +2227,7 @@ Exactly 3 meals. Only use provided ingredients. If the chosen cuisine does not n
 
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+    import { initializeAppCheck, ReCaptchaV3Provider } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app-check.js';
     import {
       getAuth,
       GoogleAuthProvider,
@@ -2247,6 +2248,13 @@ Exactly 3 meals. Only use provided ingredients. If the chosen cuisine does not n
     };
 
     const app = initializeApp(firebaseConfig);
+
+    // ── App Check (reCAPTCHA v3) — must initialise before any Firebase service
+    initializeAppCheck(app, {
+      provider: new ReCaptchaV3Provider('6LctSIwsAAAAAHHuXMB2TdcOTZNLfFlGrL6S1R95'),
+      isTokenAutoRefreshEnabled: true
+    });
+
     const auth = getAuth(app);
     const googleProvider = new GoogleAuthProvider();
 
