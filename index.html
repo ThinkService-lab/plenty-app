@@ -633,6 +633,43 @@
       text-align: center;
       margin-top: 8px;
     }
+    .signin-gate {
+      text-align: center;
+      padding: 20px 24px;
+      background: var(--warm-white);
+      border: 1.5px solid #E0D8CE;
+      border-radius: 20px;
+      margin-top: 12px;
+    }
+    .signin-gate-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--earth);
+      margin-bottom: 6px;
+    }
+    .signin-gate-sub {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+    .signin-gate-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--terracotta);
+      color: #fff;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      border: none;
+      border-radius: 100px;
+      padding: 12px 28px;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .signin-gate-btn:hover { opacity: 0.88; }
 
   /* Meal card placeholder header */
   .meal-placeholder {
@@ -1237,6 +1274,11 @@
   <button class="generate-btn" id="generateBtn" disabled>
     <span>✨</span> Show me what I can make
   </button>
+  <div id="signinGate" class="signin-gate" style="display:none">
+    <p class="signin-gate-title">You've used your 2 free tries</p>
+    <p class="signin-gate-sub">Create a free account to keep going — no password needed, takes 30 seconds.</p>
+    <button class="signin-gate-btn" onclick="window.showLoginModal()">🌿 Sign in to continue</button>
+  </div>
       <p id="usageIndicator" class="usage-indicator" style="display:none"></p>
   </div><!-- /#formSection -->
 
@@ -1623,10 +1665,20 @@ https://plenty-app-nine.vercel.app`;
     localStorage.removeItem('plenty_anon_count');
   };
 
+  window.showSignInGate = function() {
+    document.getElementById('generateBtn').style.display = 'none';
+    document.getElementById('signinGate').style.display = 'block';
+  };
+  window.hideSignInGate = function() {
+    document.getElementById('signinGate').style.display = 'none';
+    document.getElementById('generateBtn').style.display = 'flex';
+  };
+
   // ── Generate meals ──
   window.generateMeals = async function() {
     // Gate anonymous users after 2 tries
     if (!window._currentUser && typeof window.getAnonCount === 'function' && window.getAnonCount() >= 2) {
+      window.showSignInGate();
       if (typeof window.showLoginModal === 'function') window.showLoginModal();
       return;
     }
@@ -2214,6 +2266,7 @@ Exactly 3 meals. Only use provided ingredients. If the chosen cuisine does not n
       if (chip) chip.style.display = 'flex';
       var signInBtn = document.getElementById('signInNavBtn');
       if (signInBtn) signInBtn.style.display = 'none';
+      if (typeof window.hideSignInGate === 'function') window.hideSignInGate();
     };
     window.hideAuthChip = function() {
       var chip = document.getElementById('authChip');
@@ -2355,6 +2408,7 @@ Exactly 3 meals. Only use provided ingredients. If the chosen cuisine does not n
       window.resetAnonCount();
       window.hideAuthChip();
       window.hideUsageIndicator();
+      if (typeof window.hideSignInGate === 'function') window.hideSignInGate();
     };
 
     // ── Handle email link sign-in on page load
