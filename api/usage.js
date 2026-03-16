@@ -114,7 +114,7 @@ export async function checkAndIncrementUsage(idToken) {
   try {
     result = await atomicIncrement(uid, limit);
   } catch (e) {
-    console.error('[usage] atomicIncrement failed for uid', uid, e.message);
+    console.error('[usage] atomicIncrement failed for uid', uid, e.code, e.message);
     return { count: 0, limit, plan };
   }
 
