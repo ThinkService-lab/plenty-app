@@ -1446,9 +1446,6 @@ https://plenty-app-nine.vercel.app`;
     document.getElementById('shareModalOverlay').classList.remove('active');
   }
 
-  // Attach generate button listener
-  document.getElementById('generateBtn').addEventListener('click', window.generateMeals);
-
   renderHealthGrid();
   updateHealthSummary();
 
@@ -1565,6 +1562,17 @@ https://plenty-app-nine.vercel.app`;
     }
     return context;
   }
+
+  // ── Anonymous counter helpers (localStorage only — no Firebase dependency)
+  window.getAnonCount = function() {
+    return parseInt(localStorage.getItem('plenty_anon_count') || '0', 10);
+  };
+  window.incrementAnonCount = function() {
+    localStorage.setItem('plenty_anon_count', String(window.getAnonCount() + 1));
+  };
+  window.resetAnonCount = function() {
+    localStorage.removeItem('plenty_anon_count');
+  };
 
   // ── Generate meals ──
   window.generateMeals = async function() {
@@ -1947,8 +1955,6 @@ Exactly 3 meals. Only use provided ingredients. If the chosen cuisine does not n
   // Attach generate button listener
   document.getElementById('generateBtn').addEventListener('click', window.generateMeals);
 
-  renderHealthGrid();
-
   // ── Ingredient photo scan ────────────────────────────────────────────────
 
   // resizeImage: shrinks photo to max 800px on longest side, encodes to JPEG.
@@ -2151,17 +2157,6 @@ Exactly 3 meals. Only use provided ingredients. If the chosen cuisine does not n
     window._firebaseAuth = auth;
     window._currentUser = null;
     window._currentUsagePlan = 'free';
-
-    // ── Anonymous counter helpers
-    window.getAnonCount = function() {
-      return parseInt(localStorage.getItem('plenty_anon_count') || '0', 10);
-    };
-    window.incrementAnonCount = function() {
-      localStorage.setItem('plenty_anon_count', String(window.getAnonCount() + 1));
-    };
-    window.resetAnonCount = function() {
-      localStorage.removeItem('plenty_anon_count');
-    };
 
     // ── Auth chip
     window.renderAuthChip = function(user) {
