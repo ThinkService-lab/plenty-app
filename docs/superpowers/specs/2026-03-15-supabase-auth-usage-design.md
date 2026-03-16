@@ -2,7 +2,7 @@
 
 **Date:** 2026-03-15 (updated to Firebase 2026-03-15)
 **Feature:** User login (Google + email magic link) + daily generation limit enforcement
-**Status:** Approved for implementation
+**Status:** Shipped to production (merged to `main`, 2026-03-15)
 **Phase:** 1 of 2 (Phase 2 = Stripe payments)
 **Backend:** Firebase (Auth + Firestore) — originally designed for Supabase, migrated to Firebase due to free tier availability
 

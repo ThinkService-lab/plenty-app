@@ -14,7 +14,7 @@
 
 - **All onclick handlers must be `window.X = function`** — the Firebase JS SDK script is `type="module"`, so all functions must be explicitly assigned to `window.*` to be accessible from HTML onclick attributes
 - **Never use `innerHTML =` on user-controlled input** — build DOM elements programmatically
-- **Branch:** all work on `supabase-auth` branch (worktree at `.worktrees/supabase-auth`), never `main`
+- **Branch:** Merged to `main` and shipped to production 2026-03-15. Worktree removed.
 - **`FIREBASE_PRIVATE_KEY` must never appear in `index.html`** — server-side only
 - **Spec:** `docs/superpowers/specs/2026-03-15-supabase-auth-usage-design.md`
 

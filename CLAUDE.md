@@ -131,31 +131,34 @@ There is no Vercel function for feedback. The frontend calls the Google Apps Scr
 
 ---
 
-## Firebase auth + usage tracking (branch: `supabase-auth`)
+## Firebase auth + usage tracking
 
-**Status:** Implementation plan ready — not yet executed. Branch does not exist yet.
+**Status:** Shipped to production on `main`.
 
 **Feature summary:**
-- Anonymous users get 2 lifetime tries (tracked in `localStorage` key `plenty_anon_count`) before a login modal appears
-- Logged-in free users get 2 generations/day — enforced server-side via atomic Postgres upsert
+- Anonymous users get 2 tries (tracked in `localStorage` key `plenty_anon_count`) before a login modal appears
+- Logged-in free users get 2 generations/day — enforced server-side via Firestore atomic transaction
 - Google OAuth + email magic link login (no password)
-- Paywall modal on limit hit; shows server-authoritative reset time from `resets_at` field in the 429 response
+- Paywall modal on limit hit (`data.error === 'limit_reached'` from `/api/meals`)
 - Currency auto-detected from browser locale (`en-CA` → CAD, `en-GB` → GBP, etc.)
-- Backend: **Firebase** (originally Supabase, migrated due to free tier limits)
 
-**Firebase env vars (required in `.env.local` and Vercel dashboard before the branch can run):**
+**Firebase env vars (required in `.env.local` and Vercel dashboard):**
 - `FIREBASE_PROJECT_ID` — server-side only
 - `FIREBASE_CLIENT_EMAIL` — server-side only (service account)
 - `FIREBASE_PRIVATE_KEY` — **secret, server-side only, never in `index.html`**
 - Firebase web config (`apiKey`, `authDomain`, `projectId`) — hardcoded in `index.html` (public, safe to expose)
 
-**npm dependency:** `firebase-admin` added to `package.json` (only new dependency)
+**Critical env var formatting (Vercel CLI):** Always use `printf '%s'` not `echo` to avoid a trailing newline. For `FIREBASE_PRIVATE_KEY`, convert `\n` literals to real newlines before adding:
+```bash
+cat key.txt | python3 -c "import sys; print(sys.stdin.read().replace('\\\\n', '\\n'), end='')" | vercel env add FIREBASE_PRIVATE_KEY production
+```
+A malformed private key causes Firestore calls to fail with `16 UNAUTHENTICATED` (even though `verifyIdToken` still works, because it uses Firebase's public key, not the service account key).
 
-**Key implementation files:**
-- Plan: `docs/superpowers/plans/2026-03-15-supabase-auth-usage.md`
-- Spec: `docs/superpowers/specs/2026-03-15-supabase-auth-usage-design.md`
+**`authDomain` must be the Firebase Hosting domain** — `plenty-meals.firebaseapp.com`. Email magic links go to `{authDomain}/__/auth/action?...`; only Firebase Hosting serves that route. Setting it to the Vercel domain causes magic links to silently fail.
 
-**To resume implementation:** run `superpowers:subagent-driven-development` on the plan above, starting with Task 1 (Firebase project setup — manual dashboard steps).
+**Anonymous counter helpers must be in the non-module script** — `getAnonCount`, `incrementAnonCount`, `resetAnonCount` are in the plain `<script>` block, not in `<script type="module">`. Firebase CDN ES module imports are deferred; if a user clicks "Generate" before the CDN resolves, module-scoped functions are `undefined`. The anon counter only needs `localStorage`, so it has no Firebase dependency and belongs in the synchronous script.
+
+**npm dependency:** `firebase-admin` in `package.json` (only new dependency added for auth).
 
 **Firebase JS on frontend:** ES module imports from Google CDN at pinned version:
 ```
@@ -164,7 +167,7 @@ https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js
 ```
 Loaded via `<script type="module">` — all functions assigned to `window.*` for onclick access.
 
-**Server-side:** `firebase-admin` npm package handles token verification and Firestore transactions.
+**Server-side:** `firebase-admin` npm package handles token verification (`verifyIdToken`) and Firestore transactions (`usage` collection, doc pattern: `{uid}_{YYYY-MM-DD}`).
 
 **Do not use `node --check` on `index.html`** — Node can't parse HTML files. Use `vercel dev` and check the browser console instead. `node --check` is valid for `.js` files only.
 
@@ -176,7 +179,13 @@ Loaded via `<script type="module">` — all functions assigned to `window.*` for
 vercel dev          # starts at http://localhost:3000
 ```
 
-Requires `.env.local` with `ANTHROPIC_API_KEY=...` in the project root. Once the `supabase-auth` branch is active, also requires `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY`.
+Requires `.env.local` with:
+- `ANTHROPIC_API_KEY`
+- `FIREBASE_PROJECT_ID`
+- `FIREBASE_CLIENT_EMAIL`
+- `FIREBASE_PRIVATE_KEY` (with real newlines, not `\n` literals)
+
+Pull the current values from Vercel with `vercel env pull .env.local` (run from the project root). Note: `vercel env pull` **overwrites** `.env.local` — if you have local-only values, re-add them after pulling.
 
 ---
 
