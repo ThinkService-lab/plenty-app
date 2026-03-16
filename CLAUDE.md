@@ -19,6 +19,7 @@ AI assistant context for this codebase. Read this before making any changes.
 - **Rebrand:** app name is PlentyMeals everywhere (was Plenty)
 - **Nav bar:** site-nav inside hero — PlentyMeals logo left, avatar/Sign-in button right
 - **Logo files:** `logo.svg` (horizontal lockup) + `logo-icon.svg` (square icon) — terracotta circle, green leaf (#5AAF85), Playfair Display wordmark
+- **Firebase App Check:** reCAPTCHA v3 enforced on Auth + Firestore; API key restricted by HTTP referrer
 
 **Next candidates:**
 1. **Stripe payments** — wire paywall modal to Stripe Checkout; Firestore `profiles.plan` field already exists
@@ -191,6 +192,9 @@ There is no Vercel function for feedback. The frontend calls the Google Apps Scr
 - Google OAuth + email magic link login (no password)
 - Paywall modal on limit hit (`data.error === 'limit_reached'` from `/api/meals`)
 - Currency auto-detected from browser locale (`en-CA` → CAD, `en-GB` → GBP, etc.)
+
+**App Check — shipped:**
+reCAPTCHA v3 provider. Initialised immediately after `initializeApp()`, before Auth/Firestore. Enforced on both Auth and Firestore in Firebase Console. Site key is public (hardcoded in `index.html`). Score threshold: 0.5. Token TTL: 1 day. API key also restricted by HTTP referrer in GCP Console.
 
 **Apple Sign In — not yet added, required for App Store:**
 Apple mandates Sign in with Apple if any third-party OAuth (e.g. Google) is offered. Firebase Auth supports it. Must be added before iOS App Store submission.
