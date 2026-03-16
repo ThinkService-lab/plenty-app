@@ -138,6 +138,8 @@ export default async function handler(req, res) {
           if (code < 32 || code === 127) return '';
           return c;
         }).join('');
+        // Strip trailing commas before closing brackets/braces (Claude occasionally emits these)
+        jsonStr = jsonStr.replace(/,(\s*[}\]])/g, '$1');
         try {
           const parsed = JSON.parse(jsonStr);
           return res.status(200).json({ clean: true, parsed, usage: usageData });
