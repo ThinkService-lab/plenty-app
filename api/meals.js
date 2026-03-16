@@ -68,6 +68,9 @@ export default async function handler(req, res) {
 
   if (authHeader && authHeader.startsWith('Bearer ')) {
     const token = authHeader.slice(7);
+    if (!token) {
+      return res.status(401).json({ error: 'Session expired. Please log in again.' });
+    }
     const usageResult = await checkAndIncrementUsage(token);
 
     if (usageResult.error === 'unauthorized') {
