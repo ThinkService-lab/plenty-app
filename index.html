@@ -1643,7 +1643,7 @@ Exactly 3 meals. Only use provided ingredients. If the chosen cuisine does not n
         if (!window._currentUser && typeof window.incrementAnonCount === 'function') window.incrementAnonCount();
         // Update usage indicator for logged-in free users
         if (data.usage && typeof window.updateUsageIndicator === 'function') {
-          window.updateUsageIndicator(data.usage.count, data.usage.limit, window._currentUsagePlan);
+          window.updateUsageIndicator(data.usage.count, data.usage.limit, window._currentUsagePlan || 'free');
         }
       } else if (data.raw) {
         const jsonStart = data.raw.indexOf('{');
@@ -1654,7 +1654,7 @@ Exactly 3 meals. Only use provided ingredients. If the chosen cuisine does not n
         if (!window._currentUser && typeof window.incrementAnonCount === 'function') window.incrementAnonCount();
         // Update usage indicator for logged-in free users
         if (data.usage && typeof window.updateUsageIndicator === 'function') {
-          window.updateUsageIndicator(data.usage.count, data.usage.limit, window._currentUsagePlan);
+          window.updateUsageIndicator(data.usage.count, data.usage.limit, window._currentUsagePlan || 'free');
         }
       } else {
         throw new Error('No valid response. Please try again.');
@@ -2246,7 +2246,11 @@ Exactly 3 meals. Only use provided ingredients. If the chosen cuisine does not n
     window.sendMagicLink = async function() {
       var emailEl = document.getElementById('magicLinkEmail');
       var email = emailEl ? emailEl.value.trim() : '';
-      if (!email) return;
+      if (!email || (emailEl && !emailEl.validity.valid)) {
+        if (emailEl) emailEl.style.borderColor = '#e53e3e';
+        return;
+      }
+      if (emailEl) emailEl.style.borderColor = '';
       var actionCodeSettings = {
         url: window.location.origin,
         handleCodeInApp: true
@@ -2258,6 +2262,7 @@ Exactly 3 meals. Only use provided ingredients. If the chosen cuisine does not n
         if (sent) sent.style.display = 'block';
       } catch (e) {
         console.error('[auth] send magic link error', e.message);
+        if (emailEl) emailEl.style.borderColor = '#e53e3e';
       }
     };
 
@@ -2320,6 +2325,15 @@ Exactly 3 meals. Only use provided ingredients. If the chosen cuisine does not n
       } else {
         window.hideAuthChip();
         window.hideUsageIndicator();
+      }
+    });
+
+    // Close sign-out dropdown when clicking outside the auth chip
+    document.addEventListener('click', function(e) {
+      var chip = document.getElementById('authChip');
+      var dropdown = document.getElementById('authSignOutDropdown');
+      if (dropdown && dropdown.style.display !== 'none' && chip && !chip.contains(e.target)) {
+        dropdown.style.display = 'none';
       }
     });
   </script>
