@@ -109,6 +109,34 @@ Two tabs auto-created by the Apps Script:
 
 ---
 
+## Resume prompt (copy this into a new Claude Code session)
+
+```
+We're working on the Plenty app — an AI meal suggestion app at plenty-app-nine.vercel.app.
+
+Read CLAUDE.md before doing anything. Here's where we are:
+
+DONE (all shipped to main / production):
+- Full app UI (index.html — single file, no build step)
+- Claude Haiku meal generation via /api/meals.js
+- Fridge photo scan via /api/scan.js (Claude vision)
+- Firebase Auth: Google OAuth + email magic link login (no password)
+- Usage limits: 2 free generations/day (Firestore), anonymous gate (localStorage, 2 tries)
+- Paywall modal on limit hit
+- Google Search Console verification file added
+
+NEXT UP (pick one):
+1. Stripe payments — wire up the existing paywall modal to Stripe Checkout for Standard ($4.99/mo CAD) and Unlimited ($9.99/mo CAD) tiers. Firebase Firestore `profiles` collection already has a `plan` field ready.
+2. Save favourite meals — logged-in users can bookmark a meal; saved to Firestore under their uid.
+3. Shopping list generator — tap a meal to get a formatted shopping list of missing ingredients.
+
+Tech stack: Vanilla HTML/CSS/JS (index.html), Vercel serverless functions (/api/*.js), Firebase Auth + Firestore, Claude Haiku (claude-haiku-4-5-20251001), Google Sheets for feedback/email capture.
+
+All env vars are in Vercel dashboard and .env.local. Use `vercel dev` to test locally.
+```
+
+---
+
 ## Roadmap
 ### Next (Round 1 — get paying users)
 - [x] Cuisine choice selector — narrows AI suggestions to a specific cuisine (African, Asian, Mediterranean, etc.); AI names adaptations honestly when ingredients don't naturally fit the chosen cuisine
