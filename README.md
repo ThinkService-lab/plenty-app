@@ -72,7 +72,7 @@ Two tabs auto-created by the Apps Script:
 - **3 meal suggestions** — name, affirmation quote, description, time, difficulty, ingredient quantities, nutrition, cooking steps
 - **Cuisine selector** — 13 options from broad (Any, African, Asian) to specific (West African, East Asian, Caribbean, etc.); passed to the AI prompt to narrow suggestions; honest adaptation naming when ingredients don't naturally fit
 - **Login + usage limits** — Google OAuth + email magic link (no password); 2 free generations/day for logged-in users; anonymous users get 2 lifetime tries (localStorage, no reset) before a persistent sign-in gate replaces the generate button; paywall modal on daily limit hit; usage counter shown below generate button for both anonymous and logged-in users
-- **Firebase App Check** — reCAPTCHA v3 enforced on Auth + Firestore; blocks bots and scripts from abusing Firebase services; API key restricted by HTTP referrer in GCP Console
+- **Firebase App Check** — reCAPTCHA v3 enforced on Auth + Firestore (Firebase Console) and on `/api/meals` + `/api/scan` (server-side `verifyToken()`); token fetched client-side and sent as `X-Firebase-AppCheck` header; requests without valid token get 401; API key restricted by HTTP referrer in GCP Console
 - **Site nav bar** — PlentyMeals logo (left) + avatar/Sign-in button (right) inside the hero; avatar shows first initial only; Sign In pill appears after sign-out
 - **Triadic colour meal headers** — 3 cards use colour-wheel triadic harmony (terracotta→gold, forest→sage green, plum→terracotta) with frosted-glass emoji box
 - **Staggered spring reveal** — 5-stage animation choreography per card (cardReveal → headerReveal → emojiPop → affirmSlide → chipCascade)

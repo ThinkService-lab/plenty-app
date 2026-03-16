@@ -194,7 +194,9 @@ There is no Vercel function for feedback. The frontend calls the Google Apps Scr
 - Currency auto-detected from browser locale (`en-CA` → CAD, `en-GB` → GBP, etc.)
 
 **App Check — shipped:**
-reCAPTCHA v3 provider. Initialised immediately after `initializeApp()`, before Auth/Firestore. Enforced on both Auth and Firestore in Firebase Console. Site key is public (hardcoded in `index.html`). Score threshold: 0.5. Token TTL: 1 day. API key also restricted by HTTP referrer in GCP Console.
+reCAPTCHA v3 provider. Initialised immediately after `initializeApp()`, before Auth/Firestore. Enforced on Auth + Firestore in Firebase Console. `getToken()` called before every `/api/meals` and `/api/scan` request; token passed as `X-Firebase-AppCheck` header. Both Vercel functions call `getAppCheck().verifyToken()` server-side — requests without a valid token get a hard 401. API key also restricted by HTTP referrer in GCP Console.
+
+**reCAPTCHA dashboard note:** Google shows executes (token fetches) but no assessments — this is normal. Firebase evaluates the score internally; you never call the assessment API directly.
 
 **Apple Sign In — not yet added, required for App Store:**
 Apple mandates Sign in with Apple if any third-party OAuth (e.g. Google) is offered. Firebase Auth supports it. Must be added before iOS App Store submission.
