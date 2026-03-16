@@ -421,6 +421,24 @@
       letter-spacing: -0.3px;
     }
 
+    /* ── Sign in nav button ── */
+    .sign-in-nav-btn {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      color: #FFFBF5;
+      background: rgba(255,251,245,0.12);
+      border: 1.5px solid rgba(255,251,245,0.3);
+      border-radius: 100px;
+      padding: 6px 18px;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .sign-in-nav-btn:hover {
+      background: rgba(255,251,245,0.22);
+      border-color: rgba(255,251,245,0.5);
+    }
+
     /* ── Auth chip ── */
     .auth-chip {
       display: flex;
@@ -1098,6 +1116,7 @@
         <span id="authEmailText" class="auth-email-text"></span>
         <div id="authSignOutDropdown" class="auth-signout-dropdown" style="display:none" onclick="window.signOut()">Sign out</div>
       </div>
+      <button id="signInNavBtn" class="sign-in-nav-btn" style="display:none" onclick="window.showLoginModal()">Sign in</button>
     </div>
     <div class="hero-content">
       <p class="hero-eyebrow">Your personal meal planner</p>
@@ -1677,22 +1696,18 @@ Exactly 3 meals. Only use provided ingredients. If the chosen cuisine does not n
       
       if (data.clean && data.parsed) {
         renderResults(data.parsed);
-        // Track anonymous usage
         if (!window._currentUser && typeof window.incrementAnonCount === 'function') window.incrementAnonCount();
-        // Update usage indicator for logged-in free users
-        if (data.usage && typeof window.updateUsageIndicator === 'function') {
-          window.updateUsageIndicator(data.usage.count, data.usage.limit, window._currentUsagePlan || 'free');
+        if (typeof window.updateUsageIndicator === 'function') {
+          data.usage ? window.updateUsageIndicator(data.usage.count, data.usage.limit, window._currentUsagePlan || 'free') : window.updateUsageIndicator();
         }
       } else if (data.raw) {
         const jsonStart = data.raw.indexOf('{');
         const jsonEnd = data.raw.lastIndexOf('}');
         if (jsonStart === -1 || jsonEnd === -1) throw new Error('No valid response. Please try again.');
         renderResults(JSON.parse(data.raw.substring(jsonStart, jsonEnd + 1)));
-        // Track anonymous usage
         if (!window._currentUser && typeof window.incrementAnonCount === 'function') window.incrementAnonCount();
-        // Update usage indicator for logged-in free users
-        if (data.usage && typeof window.updateUsageIndicator === 'function') {
-          window.updateUsageIndicator(data.usage.count, data.usage.limit, window._currentUsagePlan || 'free');
+        if (typeof window.updateUsageIndicator === 'function') {
+          data.usage ? window.updateUsageIndicator(data.usage.count, data.usage.limit, window._currentUsagePlan || 'free') : window.updateUsageIndicator();
         }
       } else {
         throw new Error('No valid response. Please try again.');
@@ -2197,12 +2212,16 @@ Exactly 3 meals. Only use provided ingredients. If the chosen cuisine does not n
       if (emailEl) emailEl.textContent = '';
       var chip = document.getElementById('authChip');
       if (chip) chip.style.display = 'flex';
+      var signInBtn = document.getElementById('signInNavBtn');
+      if (signInBtn) signInBtn.style.display = 'none';
     };
     window.hideAuthChip = function() {
       var chip = document.getElementById('authChip');
       if (chip) chip.style.display = 'none';
       var dropdown = document.getElementById('authSignOutDropdown');
       if (dropdown) dropdown.style.display = 'none';
+      var signInBtn = document.getElementById('signInNavBtn');
+      if (signInBtn) signInBtn.style.display = 'flex';
     };
     window.toggleSignOutDropdown = function() {
       var dropdown = document.getElementById('authSignOutDropdown');
@@ -2215,9 +2234,20 @@ Exactly 3 meals. Only use provided ingredients. If the chosen cuisine does not n
       window._currentUsagePlan = plan || 'free';
       var el = document.getElementById('usageIndicator');
       if (!el) return;
-      if (!window._currentUser || plan !== 'free') { el.style.display = 'none'; return; }
-      el.textContent = count + ' of ' + limit + ' free meal plans used today';
-      el.style.display = 'block';
+      if (window._currentUser) {
+        if (plan !== 'free') { el.style.display = 'none'; return; }
+        el.textContent = count + ' of ' + limit + ' free meal plans used today';
+        el.style.display = 'block';
+      } else {
+        var used = (typeof window.getAnonCount === 'function') ? window.getAnonCount() : 0;
+        var remaining = Math.max(0, 2 - used);
+        if (remaining > 0) {
+          el.textContent = remaining + ' of 2 free ' + (remaining === 1 ? 'try' : 'tries') + ' left — sign in for more';
+          el.style.display = 'block';
+        } else {
+          el.style.display = 'none';
+        }
+      }
     };
     window.hideUsageIndicator = function() {
       var el = document.getElementById('usageIndicator');

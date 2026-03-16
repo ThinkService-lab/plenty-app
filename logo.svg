@@ -6,13 +6,13 @@
   <!-- Terracotta circle -->
   <circle cx="28" cy="28" r="24" fill="#C4622D"/>
 
-  <!-- Leaf shape (white, slightly transparent) -->
-  <path d="M28 41 C17 33 13 22 15 14 C17 7 23 6 28 10 C33 6 39 7 41 14 C43 22 39 33 28 41Z"
-        fill="rgba(255,255,255,0.92)"/>
+  <!-- Leaf — elongated, pointed tip at top, green -->
+  <path d="M28 10 C36 12 41 19 40 28 C39 36 34 43 28 44 C22 43 17 36 16 28 C15 19 20 12 28 10Z"
+        fill="#5AAF85"/>
 
-  <!-- Leaf centre vein -->
-  <line x1="28" y1="41" x2="28" y2="12"
-        stroke="#C4622D" stroke-width="1.4" stroke-linecap="round" opacity="0.5"/>
+  <!-- Centre vein -->
+  <line x1="28" y1="10" x2="28" y2="44"
+        stroke="#2D7A5A" stroke-width="1.3" stroke-linecap="round" opacity="0.7"/>
 
   <!-- Wordmark -->
   <text x="64" y="37"
