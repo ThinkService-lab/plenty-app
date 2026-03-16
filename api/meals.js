@@ -55,12 +55,12 @@ export default async function handler(req, res) {
   // ── App Check verification
   const appCheckToken = req.headers['x-firebase-appcheck'];
   if (!appCheckToken) {
-    return res.status(401).json({ error: 'Unauthorized request.' });
+    return res.status(403).json({ error: 'app_check_failed' });
   }
   try {
     await getAppCheck().verifyToken(appCheckToken);
   } catch (e) {
-    return res.status(401).json({ error: 'Unauthorized request.' });
+    return res.status(403).json({ error: 'app_check_failed' });
   }
 
   // ── Rate limiting
